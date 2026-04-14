@@ -14,7 +14,7 @@
 //   Server  → DB upsert → session.save → redirect /
 
 import { Router } from 'express'
-import type { Request, Response } from 'express'
+import type { Request, Response, NextFunction } from 'express'
 import { prisma } from './db.js'
 import { logger } from './logger.js'
 
@@ -187,6 +187,19 @@ router.get('/auth/me', (req: Request, res: Response) => {
 })
 
 export { router as authRouter }
+
+// ── requireAuth middleware ─────────────────────────────────────────────────
+// Protects routes that require a logged-in user (e.g. POST /audit).
+// Returns 401 JSON instead of redirecting — API clients expect JSON errors,
+// not HTML redirect pages. The frontend treats a 401 as "not logged in"
+// and shows the login button rather than an error screen.
+export function requireAuth(req: Request, res: Response, next: NextFunction): void {
+  if (req.session.userId) {
+    next()
+  } else {
+    res.status(401).json({ error: 'Authentication required' })
+  }
+}
 
 // ── TypeScript: extend express-session's SessionData ──────────────────────
 // By default, express-session only types the built-in fields on req.session
