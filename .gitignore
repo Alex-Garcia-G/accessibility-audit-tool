@@ -29,5 +29,8 @@ Thumbs.db
 .vscode/settings.json
 .idea/
 
+# Claude Code — local AI assistant config, not for public repos
+CLAUDE.md
+
 # Uploads (if we store them locally during dev)
 uploads/
