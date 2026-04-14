@@ -95,6 +95,6 @@ Requires `server/.env` — copy from `.env.example` and fill in:
 
 - **Phase 1** ✅ — Project scaffolded (client, server, Prisma schema, Docker, lint/hooks)
 - **Phase 2** ✅ — GitHub OAuth, Prisma migration, session middleware
-- **Phase 3** 🔨 — Four-agent Claude pipeline (Scanner → Auditor → Severity → Reporter)
+- **Phase 3** ✅ — Four-agent Claude pipeline (Scanner → Auditor → Severity → Reporter)
 - **Phase 4** — Frontend (React UI, audit form, results display)
 - **Phase 5** — Deploy to Railway
