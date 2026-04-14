@@ -1,0 +1,25 @@
+# Docker Compose spins up a PostgreSQL database in a container for local development.
+# This means you don't need PostgreSQL installed on your machine — just Docker.
+# It also guarantees every developer on the project uses identical database settings,
+# which eliminates the classic "works on my machine" database problem.
+#
+# To start:  docker compose up -d
+# To stop:   docker compose down
+# To reset:  docker compose down -v  (WARNING: deletes all data)
+
+services:
+  db:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: accessibility_audit
+    ports:
+      - "5432:5432"
+    volumes:
+      # Named volume persists data between container restarts
+      - postgres_data:/var/lib/postgresql/data
+
+volumes:
+  postgres_data:

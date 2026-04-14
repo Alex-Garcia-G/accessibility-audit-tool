@@ -1,0 +1,33 @@
+# Dependencies
+node_modules/
+client/node_modules/
+server/node_modules/
+
+# Environment — NEVER commit secrets
+.env
+.env.local
+.env.*.local
+
+# Build output
+dist/
+client/dist/
+server/dist/
+
+# Prisma generated client
+server/node_modules/.prisma/
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Editor
+.vscode/settings.json
+.idea/
+
+# Uploads (if we store them locally during dev)
+uploads/

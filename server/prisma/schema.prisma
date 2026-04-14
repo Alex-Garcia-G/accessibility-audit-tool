@@ -1,0 +1,42 @@
+// Prisma is an ORM — it lets us define our database tables here as code,
+// then auto-generates TypeScript types and handles migrations for us.
+// This means no raw SQL, no type mismatches between code and database.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        Int       @id @default(autoincrement())
+  githubId  Int       @unique
+  username  String
+  avatarUrl String?
+  createdAt DateTime  @default(now())
+  audits    Audit[]
+  sessions  Session[]
+}
+
+model Session {
+  id        String   @id
+  userId    Int
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+}
+
+model Audit {
+  id         Int      @id @default(autoincrement())
+  userId     Int
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  inputType  String   // 'url' or 'file'
+  inputLabel String   // the URL or original filename shown in history
+  score      Int?     // 0–100, null while the audit is still running
+  status     String   @default("pending") // pending | running | complete | error
+  result     Json?    // full audit output stored as JSON
+  createdAt  DateTime @default(now())
+}
