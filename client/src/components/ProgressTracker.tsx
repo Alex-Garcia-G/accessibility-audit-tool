@@ -37,7 +37,7 @@ const STAGES = [
   {
     key: 'classifying',
     label: 'Classifying severity',
-    description: 'Rating each issue: critical → minor',
+    description: 'Determining impact level of each issue',
   },
   { key: 'reporting', label: 'Writing report', description: 'Generating summary and code fixes' },
 ] as const
