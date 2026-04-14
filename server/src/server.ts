@@ -1,7 +1,9 @@
 import express from 'express'
 import helmet from 'helmet'
 import rateLimit from 'express-rate-limit'
+import session from 'express-session'
 import { logger } from './logger.js'
+import { authRouter } from './auth.js'
 
 const app = express()
 const PORT = process.env.PORT ?? 3000
@@ -23,6 +25,44 @@ app.use(
 )
 
 app.use(express.json())
+
+// ── Session middleware ─────────────────────────────────────────────────────
+// express-session sets a cookie ('sid') on the browser containing only a
+// random session ID. The actual session data lives on the server.
+//
+// Currently using MemoryStore (the default) — sessions are lost on restart
+// and won't scale across multiple server instances. That's fine for local
+// development. The Prisma Session model exists for when we upgrade to a
+// database-backed store in a later phase.
+//
+// Note: express-session will log a warning about MemoryStore in production.
+// This is expected and will go away once we switch to a proper store.
+app.use(
+  session({
+    name: 'sid', // cookie name — must match clearCookie('sid') in auth.ts
+    secret: process.env.SESSION_SECRET ?? 'dev-secret-change-me',
+    resave: false, // don't re-save a session that hasn't changed (performance)
+    saveUninitialized: false, // don't create a session until something is stored
+    cookie: {
+      httpOnly: true, // JS in the browser cannot read this cookie (XSS protection)
+      secure: process.env.NODE_ENV === 'production', // HTTPS-only in prod, HTTP ok in dev
+      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days in milliseconds
+      sameSite: 'lax', // sent on top-level navigation, blocked on cross-site requests (CSRF protection)
+    },
+  })
+)
+
+// ── Auth routes ────────────────────────────────────────────────────────────
+// Mounts the GitHub OAuth routes defined in auth.ts:
+//   GET  /auth/github           → redirects browser to GitHub authorize page
+//   GET  /auth/github/callback  → handles GitHub's redirect back, creates session
+//   POST /auth/logout           → destroys session and clears cookie
+//   GET  /auth/me               → returns current session user or 401
+//
+// IMPORTANT: session middleware must be registered before authRouter.
+// Express runs middleware in the order it's registered. If authRouter ran
+// first, req.session would be undefined inside the auth handlers.
+app.use(authRouter)
 
 // ── Health check ───────────────────────────────────────────────────────────
 // Railway and Docker use this route to know if the container is alive
