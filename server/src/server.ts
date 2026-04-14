@@ -4,6 +4,7 @@ import rateLimit from 'express-rate-limit'
 import session from 'express-session'
 import { logger } from './logger.js'
 import { authRouter } from './auth.js'
+import { auditRouter } from './audit.js'
 
 const app = express()
 const PORT = process.env.PORT ?? 3000
@@ -63,6 +64,13 @@ app.use(
 // Express runs middleware in the order it's registered. If authRouter ran
 // first, req.session would be undefined inside the auth handlers.
 app.use(authRouter)
+
+// ── Audit routes ───────────────────────────────────────────────────────────
+// Mounts the four-agent pipeline routes:
+//   POST /audit             → start an audit (URL or HTML file)
+//   GET  /audit/:id         → get current status / final result
+//   GET  /audit/:id/stream  → SSE stream of live pipeline progress
+app.use(auditRouter)
 
 // ── Health check ───────────────────────────────────────────────────────────
 // Railway and Docker use this route to know if the container is alive
