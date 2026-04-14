@@ -15,6 +15,7 @@ Alex Garcia — knows Node.js, Express, TypeScript, Anthropic Claude API, SSE st
 - Always explain what you're doing, why, and what went wrong when things break
 - Small, frequent conventional commits — one thing per commit (`feat:`, `fix:`, `chore:`, etc.)
 - Comments in code should explain WHY, not just what the line does
+- After all commits for a task are done and working, push to GitHub (`git push origin main`) — do not end a session with unpushed commits
 
 ## Environment
 
