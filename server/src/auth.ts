@@ -46,7 +46,7 @@ router.get('/auth/github/callback', async (req: Request, res: Response) => {
   // The user clicked "Deny" on GitHub, or GitHub sent an error.
   if (!code) {
     logger.warn({ query: req.query }, 'GitHub callback arrived without a code')
-    res.redirect('/?error=oauth_denied')
+    res.redirect(`${process.env.CLIENT_URL ?? 'http://localhost:5173'}/?error=oauth_denied`)
     return
   }
 
@@ -139,15 +139,18 @@ router.get('/auth/github/callback', async (req: Request, res: Response) => {
     req.session.save((err) => {
       if (err) {
         logger.error({ err }, 'Failed to save session after GitHub login')
-        res.redirect('/?error=session_error')
+        // Redirect to the frontend URL, not just '/' — in dev the frontend is on
+        // a different port (5173) than the backend (3000), so a bare '/' redirect
+        // would land on the Express server which has no HTML to serve.
+        res.redirect(`${process.env.CLIENT_URL ?? 'http://localhost:5173'}/?error=session_error`)
         return
       }
       logger.info({ userId: user.id, username: user.username }, 'User logged in')
-      res.redirect('/')
+      res.redirect(process.env.CLIENT_URL ?? 'http://localhost:5173')
     })
   } catch (err) {
     logger.error({ err }, 'GitHub OAuth callback failed')
-    res.redirect('/?error=auth_error')
+    res.redirect(`${process.env.CLIENT_URL ?? 'http://localhost:5173'}/?error=auth_error`)
   }
 })
 
