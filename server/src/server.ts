@@ -14,8 +14,19 @@ const PORT = process.env.PORT ?? 3000
 
 // ── Security middleware ────────────────────────────────────────────────────
 // helmet sets ~15 HTTP headers that protect against common attacks
-// (clickjacking, MIME sniffing, etc.) — one line, big security win
-app.use(helmet())
+// (clickjacking, MIME sniffing, etc.) — one line, big security win.
+// We extend the default CSP to allow GitHub avatar images, which come
+// from avatars.githubusercontent.com — blocked by default otherwise.
+app.use(
+  helmet({
+    contentSecurityPolicy: {
+      directives: {
+        ...helmet.contentSecurityPolicy.getDefaultDirectives(),
+        'img-src': ["'self'", 'data:', 'https://avatars.githubusercontent.com'],
+      },
+    },
+  })
+)
 
 // rate-limit caps requests per IP — prevents someone from hammering the API
 // and running up our Anthropic bill
