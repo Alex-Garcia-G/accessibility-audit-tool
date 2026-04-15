@@ -114,7 +114,7 @@ router.post(
 // Returns the current state of an audit. The client can poll this every few
 // seconds, or just call it once after the SSE stream emits 'complete'.
 router.get('/audit/:id', requireAuth, async (req: Request, res: Response) => {
-  const auditId = parseInt(req.params.id, 10)
+  const auditId = parseInt(String(req.params.id), 10)
   if (isNaN(auditId)) {
     res.status(400).json({ error: 'Invalid audit ID' })
     return
@@ -161,7 +161,7 @@ router.get('/audit/:id', requireAuth, async (req: Request, res: Response) => {
 // built-in browser reconnect) and perfectly sufficient for progress updates
 // where the client only needs to listen, not send messages back.
 router.get('/audit/:id/stream', requireAuth, async (req: Request, res: Response) => {
-  const auditId = parseInt(req.params.id, 10)
+  const auditId = parseInt(String(req.params.id), 10)
   if (isNaN(auditId)) {
     res.status(400).json({ error: 'Invalid audit ID' })
     return

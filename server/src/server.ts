@@ -2,6 +2,9 @@ import express from 'express'
 import helmet from 'helmet'
 import rateLimit from 'express-rate-limit'
 import session from 'express-session'
+import { fileURLToPath } from 'node:url'
+import { join, dirname } from 'node:path'
+import { existsSync } from 'node:fs'
 import { logger } from './logger.js'
 import { authRouter } from './auth.js'
 import { auditRouter } from './audit.js'
@@ -77,6 +80,25 @@ app.use(auditRouter)
 app.get('/health', (_req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() })
 })
+
+// ── Serve React frontend in production ─────────────────────────────────────
+// In development, Vite runs on port 5173 and proxies API calls to this server.
+// In production, we build the React app to client/dist/ and serve it from here.
+// This means one deployed service handles both the API and the UI.
+//
+// The catch-all route (*) must come LAST — after all API routes — so that
+// /audit, /auth, and /health are matched by their own handlers first.
+// Only unknown routes (which the React app handles client-side) fall through here.
+const __dirname = dirname(fileURLToPath(import.meta.url))
+const clientDist = join(__dirname, '..', '..', 'client', 'dist')
+
+if (existsSync(clientDist)) {
+  app.use(express.static(clientDist))
+  app.get('*', (_req, res) => {
+    res.sendFile(join(clientDist, 'index.html'))
+  })
+  logger.info({ clientDist }, 'Serving React frontend from dist')
+}
 
 // ── Start ──────────────────────────────────────────────────────────────────
 app.listen(PORT, () => {
