@@ -1,0 +1,13 @@
+# Nixpacks build config for Railway.
+# Pins the Node.js version and ensures devDependencies are installed for the build step.
+[phases.setup]
+nixPkgs = ["nodejs_20"]
+
+[phases.install]
+cmds = ["npm install --include=dev"]
+
+[phases.build]
+cmds = ["npm run build"]
+
+[start]
+cmd = "cd server && npm run db:migrate:prod && node dist/server.js"

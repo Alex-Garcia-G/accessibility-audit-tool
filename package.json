@@ -7,7 +7,7 @@
     "build": "npm run build --prefix client && npm run build --prefix server",
     "lint": "npm run lint --prefix client && npm run lint --prefix server",
     "format": "prettier --write \"**/*.{ts,tsx,json,css,md}\" --ignore-path .gitignore",
-    "prepare": "husky"
+    "prepare": "husky || true"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
