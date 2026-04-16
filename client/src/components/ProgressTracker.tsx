@@ -59,8 +59,17 @@ export function ProgressTracker({ auditId, onComplete, onError }: Props) {
     const es = new EventSource(`/audit/${auditId}/stream`)
 
     es.onmessage = (event: MessageEvent<string>) => {
-      // Each message is a JSON string — parse it into a PipelineEvent
-      const pipelineEvent = JSON.parse(event.data) as PipelineEvent
+      // Each message is a JSON string — parse it into a PipelineEvent.
+      // Wrap in try/catch: a malformed message or proxy-injected status line
+      // would otherwise throw an uncaught exception and crash the component.
+      let pipelineEvent: PipelineEvent
+      try {
+        pipelineEvent = JSON.parse(event.data) as PipelineEvent
+      } catch {
+        es.close()
+        onError('Received an unexpected response from the server. Please try again.')
+        return
+      }
 
       if (pipelineEvent.status === 'started') {
         // A stage just started — mark it as active so we can show the spinner
