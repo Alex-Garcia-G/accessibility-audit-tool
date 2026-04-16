@@ -8,6 +8,7 @@
 // All routes are protected by requireAuth. Users can only see their own audits.
 
 import { Router, type Request, type Response } from 'express'
+import rateLimit from 'express-rate-limit'
 import multer from 'multer'
 import { prisma } from './db.js'
 import { logger } from './logger.js'
@@ -15,6 +16,19 @@ import { requireAuth } from './auth.js'
 import { runPipeline, auditEmitter, type PipelineEvent } from './agents/pipeline.js'
 
 const router = Router()
+
+// Per-user rate limit for POST /audit.
+// The global limiter in server.ts is IP-based — it won't stop a single logged-in
+// user from running dozens of audits and burning through Anthropic API credits.
+// This limiter keys by userId so each account gets its own independent counter.
+const auditRateLimit = rateLimit({
+  windowMs: 60 * 60 * 1000, // 1 hour
+  max: 10, // 10 audits per user per hour
+  keyGenerator: (req: Request) => String(req.session.userId),
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { error: 'Too many audits. You can run up to 10 per hour — please try again later.' },
+})
 
 // multer processes multipart/form-data requests (file uploads).
 // memoryStorage keeps the file as a Buffer in req.file.buffer — no disk writes.
@@ -43,6 +57,7 @@ const upload = multer({
 router.post(
   '/audit',
   requireAuth,
+  auditRateLimit,
   // upload.single('file') handles multipart requests. For JSON requests it's a
   // no-op — multer simply calls next() if the content-type isn't multipart.
   upload.single('file'),
