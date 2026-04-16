@@ -4,6 +4,7 @@
 // and renders it. No state, no side effects, no API calls. Just props → UI.
 // These are called "dumb components" or "presentational components" in React.
 
+import { useMemo } from 'react'
 import { Link } from 'react-router-dom'
 import type { AuditReport as AuditReportType, Violation } from '../types.js'
 
@@ -93,8 +94,15 @@ function ViolationCard({ violation }: { violation: Violation }) {
 }
 
 export function AuditReport({ report, inputLabel }: Props) {
-  const sortedViolations = [...report.violations].sort(
-    (a, b) => SEVERITY_ORDER.indexOf(a.severity) - SEVERITY_ORDER.indexOf(b.severity)
+  // useMemo caches the sorted array — the sort only re-runs if report.violations
+  // changes, not on every render. The result is always the same while viewing a
+  // report, so recomputing it on each render would be pure wasted work.
+  const sortedViolations = useMemo(
+    () =>
+      [...report.violations].sort(
+        (a, b) => SEVERITY_ORDER.indexOf(a.severity) - SEVERITY_ORDER.indexOf(b.severity)
+      ),
+    [report.violations]
   )
 
   return (
