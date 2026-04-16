@@ -252,4 +252,30 @@ router.get('/audit/:id/stream', requireAuth, async (req: Request, res: Response)
   req.on('close', cleanup)
 })
 
+// ── GET /audits ────────────────────────────────────────────────────────────
+// Returns the current user's 20 most recent audits, newest first.
+// Does NOT include the result JSON — that field can be large and isn't needed
+// for a list view. Clients fetch GET /audit/:id when they want the full report.
+router.get('/audits', requireAuth, async (req: Request, res: Response) => {
+  try {
+    const audits = await prisma.audit.findMany({
+      where: { userId: req.session.userId },
+      orderBy: { createdAt: 'desc' },
+      take: 20,
+      select: {
+        id: true,
+        status: true,
+        score: true,
+        inputType: true,
+        inputLabel: true,
+        createdAt: true,
+      },
+    })
+    res.json(audits)
+  } catch (err) {
+    logger.error({ err }, 'Failed to fetch audits list')
+    res.status(500).json({ error: 'Failed to fetch audits' })
+  }
+})
+
 export { router as auditRouter }
