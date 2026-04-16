@@ -20,6 +20,7 @@ import { lookup } from 'node:dns/promises'
 import { anthropic } from '../anthropic.js'
 import { withRetry } from '../utils.js'
 import { MODELS } from '../config.js'
+import { logger } from '../logger.js'
 import { ScanResultSchema, type ScanResult } from './types.js'
 
 // Prevent SSRF (Server-Side Request Forgery) attacks.
@@ -101,6 +102,16 @@ export async function runScanner(input: ScannerInput): Promise<ScanResult> {
     rawHtml = input.html
   }
 
+  // Warn when HTML is truncated — the audit will still run but may miss
+  // violations in the dropped portion. Logged so it's visible in production.
+  const TRUNCATE_LIMIT = 150_000
+  if (rawHtml.length > TRUNCATE_LIMIT) {
+    logger.warn(
+      { inputLabel, originalLength: rawHtml.length, truncatedAt: TRUNCATE_LIMIT },
+      'HTML truncated before sending to scanner — audit may be incomplete'
+    )
+  }
+
   // ── Step 2: Claude extracts accessibility-relevant structure ─────────────
   // We ask for JSON output so the result is machine-readable. Haiku is used
   // here because extraction is a structural task, not a reasoning task.
@@ -136,7 +147,7 @@ Respond ONLY with valid JSON in this exact shape — no markdown, no explanation
 {"title": "the page title text", "html": "the cleaned HTML here"}
 
 HTML TO PROCESS:
-${rawHtml.slice(0, 150_000)}`,
+${rawHtml.slice(0, TRUNCATE_LIMIT)}`,
           // Slice to 150k chars as a safety limit — this keeps token usage
           // predictable and prevents enormous pages from exceeding context windows.
           // Real accessibility-relevant content is almost always in the first 150k chars.
