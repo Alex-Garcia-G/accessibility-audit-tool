@@ -19,6 +19,7 @@ import { LoginPage } from './components/LoginPage.js'
 import { AuditForm } from './components/AuditForm.js'
 import { ProgressTracker } from './components/ProgressTracker.js'
 import { AuditReport } from './components/AuditReport.js'
+import { ErrorView } from './components/ErrorView.js'
 import type { CurrentUser, AuditReport as AuditReportType } from './types.js'
 
 // The discriminated union type for our view state.
@@ -30,6 +31,7 @@ type AppView =
   | { kind: 'form' }
   | { kind: 'progress'; auditId: number; inputLabel: string }
   | { kind: 'report'; report: AuditReportType; inputLabel: string }
+  | { kind: 'error'; message: string }
 
 function App() {
   const [view, setView] = useState<AppView>({ kind: 'loading' })
@@ -81,10 +83,7 @@ function App() {
   }, [])
 
   const handleError = useCallback((message: string) => {
-    // Show the error in an alert and go back to the form.
-    // In a more polished app you'd show this as an inline error, but an alert is fine for now.
-    alert(`Audit failed: ${message}`)
-    setView({ kind: 'form' })
+    setView({ kind: 'error', message })
   }, [])
 
   const handleNewAudit = useCallback(() => {
@@ -119,6 +118,9 @@ function App() {
           onNewAudit={handleNewAudit}
         />
       )
+
+    case 'error':
+      return <ErrorView message={view.message} onRetry={handleNewAudit} />
   }
 }
 
