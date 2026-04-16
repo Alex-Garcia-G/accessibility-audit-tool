@@ -7,7 +7,7 @@
 // All functions throw on non-2xx responses so callers can catch errors
 // in a try/catch without having to check res.ok themselves.
 
-import type { AuditRow, CurrentUser } from './types.js'
+import type { AuditListItem, AuditRow, CurrentUser } from './types.js'
 
 // ── Auth ─────────────────────────────────────────────────────────────────────
 
@@ -66,4 +66,11 @@ export async function getAudit(auditId: number): Promise<AuditRow> {
   const res = await fetch(`/audit/${auditId}`)
   if (!res.ok) throw new Error(`GET /audit/${auditId} failed: ${res.status}`)
   return res.json() as Promise<AuditRow>
+}
+
+// Fetch the current user's last 20 audits (newest first), without the full result JSON.
+export async function getAudits(): Promise<AuditListItem[]> {
+  const res = await fetch('/audits')
+  if (!res.ok) throw new Error(`GET /audits failed: ${res.status}`)
+  return res.json() as Promise<AuditListItem[]>
 }

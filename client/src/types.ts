@@ -54,6 +54,17 @@ export interface AuditRow {
   createdAt: string
 }
 
+// ── Audit list item (GET /audits) ────────────────────────────────────────────
+// Subset of AuditRow — no result field (too large for a list view).
+export interface AuditListItem {
+  id: number
+  status: 'pending' | 'running' | 'complete' | 'error'
+  score: number | null
+  inputType: string
+  inputLabel: string
+  createdAt: string
+}
+
 // ── Current user (GET /auth/me) ──────────────────────────────────────────────
 export interface CurrentUser {
   userId: number
