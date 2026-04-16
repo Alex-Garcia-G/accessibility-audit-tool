@@ -14,6 +14,7 @@ import { prisma } from './db.js'
 import { logger } from './logger.js'
 import { requireAuth } from './auth.js'
 import { runPipeline, auditEmitter, type PipelineEvent } from './agents/pipeline.js'
+import type { AuditReport } from './agents/types.js'
 
 const router = Router()
 
@@ -209,8 +210,7 @@ router.get('/audit/:id/stream', requireAuth, async (req: Request, res: Response)
         status: audit.status === 'complete' ? 'complete' : 'error',
         data:
           audit.status === 'complete'
-            ? // eslint-disable-next-line @typescript-eslint/no-explicit-any
-              (audit.result as any)
+            ? (audit.result as unknown as AuditReport)
             : { message: 'Audit failed' },
       }
       res.write(`data: ${JSON.stringify(finalEvent)}\n\n`)
