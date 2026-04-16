@@ -29,7 +29,7 @@ import { AuditReportSchema, type ViolationWithSeverity, type AuditReport } from 
  * Caps ensure the score reflects "how bad is this category" not "how many issues
  * did Claude happen to enumerate." The floor is 0 — scores don't go negative.
  */
-function calculateScore(violations: ViolationWithSeverity[]): number {
+export function calculateScore(violations: ViolationWithSeverity[]): number {
   const counts = violations.reduce<Record<string, number>>((acc, v) => {
     acc[v.severity] = (acc[v.severity] ?? 0) + 1
     return acc
