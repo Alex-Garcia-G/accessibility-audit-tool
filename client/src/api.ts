@@ -9,6 +9,17 @@
 
 import type { AuditListItem, AuditRow, CurrentUser } from './types.js'
 
+// Reads the error body and throws with the server's message if present,
+// falling back to a generic HTTP status string. Used for endpoints that
+// return { error: string } on failure — avoids duplicating this pattern
+// in every function that calls POST /audit.
+async function throwOnError(res: Response, fallback: string): Promise<void> {
+  if (!res.ok) {
+    const body = (await res.json().catch(() => ({}))) as { error?: string }
+    throw new Error(body.error ?? fallback)
+  }
+}
+
 // ── Auth ─────────────────────────────────────────────────────────────────────
 
 // Fetch the currently logged-in user. Returns null if not authenticated.
@@ -37,10 +48,7 @@ export async function startUrlAudit(url: string): Promise<number> {
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ type: 'url', url }),
   })
-  if (!res.ok) {
-    const body = (await res.json().catch(() => ({}))) as { error?: string }
-    throw new Error(body.error ?? `POST /audit failed: ${res.status}`)
-  }
+  await throwOnError(res, `POST /audit failed: ${res.status}`)
   const data = (await res.json()) as { auditId: number }
   return data.auditId
 }
@@ -53,10 +61,7 @@ export async function startFileAudit(file: File): Promise<number> {
   const form = new FormData()
   form.append('file', file)
   const res = await fetch('/audit', { method: 'POST', body: form })
-  if (!res.ok) {
-    const body = (await res.json().catch(() => ({}))) as { error?: string }
-    throw new Error(body.error ?? `POST /audit failed: ${res.status}`)
-  }
+  await throwOnError(res, `POST /audit failed: ${res.status}`)
   const data = (await res.json()) as { auditId: number }
   return data.auditId
 }
