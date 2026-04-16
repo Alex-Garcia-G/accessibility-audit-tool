@@ -42,6 +42,23 @@ app.use(
 
 app.use(express.json())
 
+// ── HTTP request logging ───────────────────────────────────────────────────
+// Logs every request once the response finishes. Using res.on('finish') rather
+// than logging on the way in means we capture the actual status code that was
+// sent — we don't know it until the handler runs and calls res.status()/res.json().
+app.use((req, res, next) => {
+  const start = Date.now()
+  res.on('finish', () => {
+    logger.info({
+      method: req.method,
+      url: req.url,
+      status: res.statusCode,
+      ms: Date.now() - start,
+    })
+  })
+  next()
+})
+
 // ── Session middleware ─────────────────────────────────────────────────────
 // express-session sets a cookie ('sid') on the browser containing only a
 // random session ID. The actual session data lives on the server.
