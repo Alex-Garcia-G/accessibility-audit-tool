@@ -9,6 +9,7 @@ import { env } from './env.js'
 import { logger } from './logger.js'
 import { authRouter } from './auth.js'
 import { auditRouter } from './audit.js'
+import { PrismaSessionStore } from './session-store.js'
 
 const app = express()
 const PORT = env.PORT
@@ -74,6 +75,7 @@ app.use(
   session({
     name: 'sid', // cookie name — must match clearCookie('sid') in auth.ts
     secret: env.SESSION_SECRET,
+    store: new PrismaSessionStore(),
     resave: false, // don't re-save a session that hasn't changed (performance)
     saveUninitialized: false, // don't create a session until something is stored
     cookie: {
