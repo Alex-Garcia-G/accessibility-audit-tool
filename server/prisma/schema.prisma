@@ -23,8 +23,9 @@ model User {
 
 model Session {
   id        String   @id
-  userId    Int
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId    Int?     // nullable — session may exist before the user completes OAuth
+  user      User?    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  data      Json     // full session payload stored by express-session
   expiresAt DateTime
   createdAt DateTime @default(now())
 }
