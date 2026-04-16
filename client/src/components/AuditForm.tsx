@@ -44,14 +44,23 @@ export function AuditForm({ user, onLogout }: Props) {
       let auditId: number
 
       if (mode === 'url') {
-        if (!url.trim()) {
+        const trimmed = url.trim()
+        if (!trimmed) {
           setError('Please enter a URL')
           return
         }
-        auditId = await startUrlAudit(url.trim())
+        if (!trimmed.startsWith('http://') && !trimmed.startsWith('https://')) {
+          setError('URL must start with http:// or https://')
+          return
+        }
+        auditId = await startUrlAudit(trimmed)
       } else {
         if (!file) {
           setError('Please select an HTML file')
+          return
+        }
+        if (file.size > 1_000_000) {
+          setError('File must be under 1 MB')
           return
         }
         auditId = await startFileAudit(file)
@@ -79,8 +88,15 @@ export function AuditForm({ user, onLogout }: Props) {
           </Link>
         </div>
         <div className="flex items-center gap-3">
-          {user.avatarUrl && (
+          {user.avatarUrl ? (
             <img src={user.avatarUrl} alt={user.username} className="w-8 h-8 rounded-full" />
+          ) : (
+            <div
+              className="w-8 h-8 rounded-full bg-blue-600 flex items-center justify-center text-sm text-white font-bold"
+              aria-label={user.username}
+            >
+              {user.username[0].toUpperCase()}
+            </div>
           )}
           <span className="text-gray-400 text-sm">{user.username}</span>
           <button
@@ -168,9 +184,12 @@ export function AuditForm({ user, onLogout }: Props) {
               </div>
             )}
 
-            {/* Error message */}
+            {/* Error message — role="alert" announces the error to screen readers */}
             {error && (
-              <div className="mb-4 text-red-400 text-sm bg-red-950 border border-red-900 rounded-lg px-4 py-3">
+              <div
+                role="alert"
+                className="mb-4 text-red-400 text-sm bg-red-950 border border-red-900 rounded-lg px-4 py-3"
+              >
                 {error}
               </div>
             )}
