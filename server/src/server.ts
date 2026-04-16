@@ -5,12 +5,13 @@ import session from 'express-session'
 import { fileURLToPath } from 'node:url'
 import { join, dirname } from 'node:path'
 import { existsSync } from 'node:fs'
+import { env } from './env.js'
 import { logger } from './logger.js'
 import { authRouter } from './auth.js'
 import { auditRouter } from './audit.js'
 
 const app = express()
-const PORT = process.env.PORT ?? 3000
+const PORT = env.PORT
 
 // ── Security middleware ────────────────────────────────────────────────────
 // helmet sets ~15 HTTP headers that protect against common attacks
@@ -55,12 +56,12 @@ app.use(express.json())
 app.use(
   session({
     name: 'sid', // cookie name — must match clearCookie('sid') in auth.ts
-    secret: process.env.SESSION_SECRET ?? 'dev-secret-change-me',
+    secret: env.SESSION_SECRET,
     resave: false, // don't re-save a session that hasn't changed (performance)
     saveUninitialized: false, // don't create a session until something is stored
     cookie: {
       httpOnly: true, // JS in the browser cannot read this cookie (XSS protection)
-      secure: process.env.NODE_ENV === 'production', // HTTPS-only in prod, HTTP ok in dev
+      secure: env.NODE_ENV === 'production', // HTTPS-only in prod, HTTP ok in dev
       maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days in milliseconds
       sameSite: 'lax', // sent on top-level navigation, blocked on cross-site requests (CSRF protection)
     },

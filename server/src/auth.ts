@@ -17,6 +17,7 @@ import { Router } from 'express'
 import type { Request, Response, NextFunction } from 'express'
 import { prisma } from './db.js'
 import { logger } from './logger.js'
+import { env } from './env.js'
 
 // Express Router lets us define a group of related routes here and mount
 // them in server.ts with app.use(authRouter). Keeps server.ts clean.
@@ -29,8 +30,8 @@ const router = Router()
 // profile (id, username, avatar). We don't ask for email or repo access.
 router.get('/auth/github', (_req: Request, res: Response) => {
   const params = new URLSearchParams({
-    client_id: process.env.GITHUB_CLIENT_ID ?? '',
-    redirect_uri: process.env.GITHUB_CALLBACK_URL ?? '',
+    client_id: env.GITHUB_CLIENT_ID,
+    redirect_uri: env.GITHUB_CALLBACK_URL,
     scope: 'read:user',
   })
   res.redirect(`https://github.com/login/oauth/authorize?${params}`)
@@ -46,7 +47,7 @@ router.get('/auth/github/callback', async (req: Request, res: Response) => {
   // The user clicked "Deny" on GitHub, or GitHub sent an error.
   if (!code) {
     logger.warn({ query: req.query }, 'GitHub callback arrived without a code')
-    res.redirect(`${process.env.CLIENT_URL ?? 'http://localhost:5173'}/?error=oauth_denied`)
+    res.redirect(`${env.CLIENT_URL}/?error=oauth_denied`)
     return
   }
 
@@ -61,10 +62,10 @@ router.get('/auth/github/callback', async (req: Request, res: Response) => {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        client_id: process.env.GITHUB_CLIENT_ID,
-        client_secret: process.env.GITHUB_CLIENT_SECRET,
+        client_id: env.GITHUB_CLIENT_ID,
+        client_secret: env.GITHUB_CLIENT_SECRET,
         code,
-        redirect_uri: process.env.GITHUB_CALLBACK_URL,
+        redirect_uri: env.GITHUB_CALLBACK_URL,
       }),
     })
 
@@ -142,15 +143,15 @@ router.get('/auth/github/callback', async (req: Request, res: Response) => {
         // Redirect to the frontend URL, not just '/' — in dev the frontend is on
         // a different port (5173) than the backend (3000), so a bare '/' redirect
         // would land on the Express server which has no HTML to serve.
-        res.redirect(`${process.env.CLIENT_URL ?? 'http://localhost:5173'}/?error=session_error`)
+        res.redirect(`${env.CLIENT_URL}/?error=session_error`)
         return
       }
       logger.info({ userId: user.id, username: user.username }, 'User logged in')
-      res.redirect(process.env.CLIENT_URL ?? 'http://localhost:5173')
+      res.redirect(env.CLIENT_URL)
     })
   } catch (err) {
     logger.error({ err }, 'GitHub OAuth callback failed')
-    res.redirect(`${process.env.CLIENT_URL ?? 'http://localhost:5173'}/?error=auth_error`)
+    res.redirect(`${env.CLIENT_URL}/?error=auth_error`)
   }
 })
 
