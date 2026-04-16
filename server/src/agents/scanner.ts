@@ -16,10 +16,55 @@
 //   a simple DOM traversal can't. Haiku is fast and cheap enough that this
 //   is worth the API call.
 
+import { lookup } from 'node:dns/promises'
 import { anthropic } from '../anthropic.js'
 import { withRetry } from '../utils.js'
 import { MODELS } from '../config.js'
 import { ScanResultSchema, type ScanResult } from './types.js'
+
+// Prevent SSRF (Server-Side Request Forgery) attacks.
+//
+// Without this check, a user could submit http://192.168.1.1 or
+// http://169.254.169.254 (the AWS EC2 metadata endpoint) and the server
+// would fetch internal resources on their behalf — leaking credentials
+// or probing the internal network.
+//
+// We resolve the hostname via DNS first so that tricks like
+// http://evil.com (which resolves to 192.168.1.1) are also caught.
+async function assertPublicUrl(url: string): Promise<void> {
+  const { hostname, protocol } = new URL(url)
+
+  if (protocol !== 'http:' && protocol !== 'https:') {
+    throw new Error('Only http and https URLs are supported')
+  }
+
+  // Catch bare localhost before DNS resolution
+  if (hostname === 'localhost' || hostname === '0.0.0.0') {
+    throw new Error('Auditing private or internal addresses is not allowed')
+  }
+
+  let address: string
+  try {
+    ;({ address } = await lookup(hostname))
+  } catch {
+    throw new Error(`Could not resolve hostname "${hostname}"`)
+  }
+
+  // Block private IPv4 ranges — none of these should be reachable from a
+  // public server, and a user has no legitimate reason to audit them.
+  const blocked = [
+    /^127\./, // 127.x.x.x — loopback
+    /^10\./, // 10.x.x.x — Class A private
+    /^172\.(1[6-9]|2\d|3[01])\./, // 172.16–31.x.x — Class B private
+    /^192\.168\./, // 192.168.x.x — Class C private
+    /^169\.254\./, // 169.254.x.x — link-local (AWS instance metadata)
+    /^0\./, // 0.x.x.x — "this" network
+  ]
+
+  if (address === '::1' || blocked.some((r) => r.test(address))) {
+    throw new Error('Auditing private or internal IP addresses is not allowed')
+  }
+}
 
 export type ScannerInput = { type: 'url'; url: string } | { type: 'file'; html: string }
 
@@ -36,6 +81,8 @@ export async function runScanner(input: ScannerInput): Promise<ScanResult> {
     // pipeline open indefinitely, blocking the user and consuming a server
     // connection. 10s is generous for a page load — if a site is slower than
     // that, it almost certainly has performance problems alongside accessibility ones.
+    await assertPublicUrl(input.url)
+
     const controller = new AbortController()
     const timeout = setTimeout(() => controller.abort(), 10_000)
 
