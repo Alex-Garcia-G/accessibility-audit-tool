@@ -7,22 +7,23 @@
 import { useMemo } from 'react'
 import { Link } from 'react-router-dom'
 import type { AuditReport as AuditReportType, Violation } from '../types.js'
+import { SCORE_GREEN, SCORE_YELLOW } from '../constants.js'
 
 interface Props {
   report: AuditReportType
   inputLabel: string // the URL or filename that was audited
 }
 
-// Score badge color: green above 80, yellow 50-79, red below 50
+// Score badge color: green above SCORE_GREEN, yellow above SCORE_YELLOW, red below
 function scoreColor(score: number): string {
-  if (score >= 80) return 'text-green-400'
-  if (score >= 50) return 'text-yellow-400'
+  if (score >= SCORE_GREEN) return 'text-green-400'
+  if (score >= SCORE_YELLOW) return 'text-yellow-400'
   return 'text-red-400'
 }
 
 function scoreBg(score: number): string {
-  if (score >= 80) return 'border-green-700 bg-green-950'
-  if (score >= 50) return 'border-yellow-700 bg-yellow-950'
+  if (score >= SCORE_GREEN) return 'border-green-700 bg-green-950'
+  if (score >= SCORE_YELLOW) return 'border-yellow-700 bg-yellow-950'
   return 'border-red-700 bg-red-950'
 }
 

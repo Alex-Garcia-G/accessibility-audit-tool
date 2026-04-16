@@ -7,20 +7,20 @@ import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { getAudits } from '../api.js'
 import type { AuditListItem, CurrentUser } from '../types.js'
+import { SCORE_GREEN, SCORE_YELLOW } from '../constants.js'
 
 interface Props {
   user: CurrentUser
   onLogout: () => void
 }
 
-// Score badge color: matches the thresholds in AuditReport
 function scoreBadgeClass(score: number | null, status: AuditListItem['status']): string {
   if (status === 'error') return 'bg-red-950 text-red-400 border border-red-900'
   if (status === 'pending' || status === 'running')
     return 'bg-blue-950 text-blue-400 border border-blue-900'
   if (score === null) return 'bg-gray-800 text-gray-400'
-  if (score >= 80) return 'bg-green-950 text-green-400 border border-green-900'
-  if (score >= 50) return 'bg-yellow-950 text-yellow-400 border border-yellow-900'
+  if (score >= SCORE_GREEN) return 'bg-green-950 text-green-400 border border-green-900'
+  if (score >= SCORE_YELLOW) return 'bg-yellow-950 text-yellow-400 border border-yellow-900'
   return 'bg-red-950 text-red-400 border border-red-900'
 }
 
@@ -66,8 +66,15 @@ export function HistoryPage({ user, onLogout }: Props) {
           <span className="text-gray-600 text-sm">History</span>
         </div>
         <div className="flex items-center gap-3">
-          {user.avatarUrl && (
+          {user.avatarUrl ? (
             <img src={user.avatarUrl} alt={user.username} className="w-8 h-8 rounded-full" />
+          ) : (
+            <div
+              className="w-8 h-8 rounded-full bg-blue-600 flex items-center justify-center text-sm text-white font-bold"
+              aria-label={user.username}
+            >
+              {user.username[0].toUpperCase()}
+            </div>
           )}
           <span className="text-gray-400 text-sm">{user.username}</span>
           <button
@@ -89,7 +96,9 @@ export function HistoryPage({ user, onLogout }: Props) {
 
         {/* Error state */}
         {loadError && (
-          <div className="text-red-400 text-sm text-center py-16">Failed to load audits.</div>
+          <div role="alert" className="text-red-400 text-sm text-center py-16">
+            Failed to load audits.
+          </div>
         )}
 
         {/* Empty state */}
