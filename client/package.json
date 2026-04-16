@@ -1,7 +1,9 @@
 {
-  "name": "client",
+  "name": "accessibility-audit-tool-client",
+  "description": "React + Vite frontend for the AI-powered accessibility auditor",
+  "author": "Alex Garcia",
   "private": true,
-  "version": "0.0.0",
+  "version": "1.0.0",
   "type": "module",
   "scripts": {
     "dev": "vite",

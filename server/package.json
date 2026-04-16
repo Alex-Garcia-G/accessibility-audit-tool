@@ -1,11 +1,14 @@
 {
   "name": "accessibility-audit-tool-server",
-  "version": "0.1.0",
+  "version": "1.0.0",
+  "description": "Express + TypeScript backend for the AI-powered accessibility auditor",
+  "author": "Alex Garcia",
   "private": true,
   "type": "module",
   "scripts": {
     "dev": "tsx watch src/server.ts",
     "test": "vitest run",
+    "typecheck": "tsc --noEmit",
     "build": "tsc",
     "start": "node dist/server.js",
     "postinstall": "prisma generate",

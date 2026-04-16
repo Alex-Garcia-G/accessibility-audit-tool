@@ -1,6 +1,8 @@
 {
   "name": "accessibility-audit-tool",
-  "version": "0.1.0",
+  "version": "1.0.0",
+  "description": "AI-powered WCAG 2.1 AA web accessibility auditor — four-agent Claude pipeline, real-time SSE progress, scored reports with code fixes",
+  "author": "Alex Garcia",
   "private": true,
   "scripts": {
     "dev": "concurrently \"npm run dev --prefix server\" \"npm run dev --prefix client\"",
