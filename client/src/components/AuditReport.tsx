@@ -170,7 +170,7 @@ export function AuditReport({ report, inputLabel }: Props) {
             </h2>
             <div className="space-y-4">
               {sortedViolations.map((violation, i) => (
-                <ViolationCard key={i} violation={violation} />
+                <ViolationCard key={`${violation.wcagCriteria}-${i}`} violation={violation} />
               ))}
             </div>
           </section>
@@ -184,8 +184,8 @@ export function AuditReport({ report, inputLabel }: Props) {
             </h2>
             <div className="bg-green-950 border border-green-900 rounded-xl p-5">
               <ul className="space-y-2">
-                {report.passedChecks.map((check, i) => (
-                  <li key={i} className="flex items-start gap-3">
+                {report.passedChecks.map((check) => (
+                  <li key={check} className="flex items-start gap-3">
                     <svg
                       className="w-4 h-4 text-green-500 flex-shrink-0 mt-0.5"
                       fill="none"
