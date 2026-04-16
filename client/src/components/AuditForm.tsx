@@ -8,16 +8,17 @@
 //             This is the standard React pattern: child notifies parent via a callback prop.
 
 import { useState } from 'react'
+import { Link, useNavigate } from 'react-router-dom'
 import { startUrlAudit, startFileAudit } from '../api.js'
 import type { CurrentUser } from '../types.js'
 
 interface Props {
   user: CurrentUser
-  onAuditStarted: (auditId: number, inputLabel: string) => void // called when POST /audit returns {auditId}
   onLogout: () => void
 }
 
-export function AuditForm({ user, onAuditStarted, onLogout }: Props) {
+export function AuditForm({ user, onLogout }: Props) {
+  const navigate = useNavigate()
   // Which tab is active: URL input or file upload
   const [mode, setMode] = useState<'url' | 'file'>('url')
 
@@ -42,26 +43,22 @@ export function AuditForm({ user, onAuditStarted, onLogout }: Props) {
     try {
       let auditId: number
 
-      let inputLabel: string
-
       if (mode === 'url') {
         if (!url.trim()) {
           setError('Please enter a URL')
           return
         }
         auditId = await startUrlAudit(url.trim())
-        inputLabel = url.trim()
       } else {
         if (!file) {
           setError('Please select an HTML file')
           return
         }
         auditId = await startFileAudit(file)
-        inputLabel = file.name
       }
 
-      // Tell the parent component the audit has started — it will switch views
-      onAuditStarted(auditId, inputLabel)
+      // Navigate to the audit page — React Router handles the view transition
+      navigate(`/audit/${auditId}`)
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to start audit')
     } finally {
@@ -74,7 +71,13 @@ export function AuditForm({ user, onAuditStarted, onLogout }: Props) {
     <div className="min-h-screen bg-gray-950 flex flex-col">
       {/* Top nav */}
       <nav className="flex items-center justify-between px-6 py-4 border-b border-gray-800">
-        <h1 className="text-white font-semibold text-lg">Accessibility Audit Tool</h1>
+        <div className="flex items-center gap-6">
+          <h1 className="text-white font-semibold text-lg">Accessibility Audit Tool</h1>
+          <span className="text-gray-600 text-sm">New Audit</span>
+          <Link to="/history" className="text-gray-400 hover:text-white text-sm transition-colors">
+            History
+          </Link>
+        </div>
         <div className="flex items-center gap-3">
           {user.avatarUrl && (
             <img src={user.avatarUrl} alt={user.username} className="w-8 h-8 rounded-full" />

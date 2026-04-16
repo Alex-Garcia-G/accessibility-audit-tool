@@ -1,58 +1,34 @@
-// App.tsx — the root component. Decides which "page" to show.
+// App.tsx — root component. Manages auth state and renders the route tree.
 //
-// Think of App as the traffic controller. It holds the top-level state
-// and renders one of four views depending on that state:
+// Auth is checked once on mount. Until we know whether the user is logged in,
+// we render a blank screen to avoid a flash of the login page.
 //
-//   1. loading  → blank screen while we check if the user is logged in
-//   2. login    → LoginPage (not authenticated)
-//   3. form     → AuditForm (logged in, ready to submit)
-//   4. progress → ProgressTracker (audit started, waiting for results)
-//   5. report   → AuditReport (pipeline complete, showing results)
-//
-// This pattern — one root component holding a "view" discriminant — is a simple
-// alternative to a router library (like React Router). We don't need URL routing
-// because the app is essentially a single workflow: log in → audit → results.
+// Protected routes redirect to / when no user session exists.
+// The / route redirects logged-in users to /new so they land on the audit form.
 
-import { useEffect, useState, useCallback } from 'react'
+import { useEffect, useState } from 'react'
+import { Routes, Route, Navigate } from 'react-router-dom'
 import { getMe, logout } from './api.js'
 import { LoginPage } from './components/LoginPage.js'
 import { AuditForm } from './components/AuditForm.js'
-import { ProgressTracker } from './components/ProgressTracker.js'
-import { AuditReport } from './components/AuditReport.js'
-import { ErrorView } from './components/ErrorView.js'
-import type { CurrentUser, AuditReport as AuditReportType } from './types.js'
-
-// The discriminated union type for our view state.
-// Each variant carries exactly the data that view needs — no optional fields,
-// no ambiguity about what's available in which view.
-type AppView =
-  | { kind: 'loading' }
-  | { kind: 'login' }
-  | { kind: 'form' }
-  | { kind: 'progress'; auditId: number; inputLabel: string }
-  | { kind: 'report'; report: AuditReportType; inputLabel: string }
-  | { kind: 'error'; message: string }
+import { AuditPage } from './pages/AuditPage.js'
+import { HistoryPage } from './pages/HistoryPage.js'
+import type { CurrentUser } from './types.js'
 
 function App() {
-  const [view, setView] = useState<AppView>({ kind: 'loading' })
   const [user, setUser] = useState<CurrentUser | null>(null)
+  const [authChecked, setAuthChecked] = useState(false)
 
-  // On mount, check if the user is already logged in.
-  // This runs once when the app first loads (the [] dependency array means "run once").
-  // Without this, every page refresh would show the login screen even if you have a session.
+  // Check session once on mount. authChecked gates all rendering so we never
+  // flash the login page to an already-authenticated user.
   useEffect(() => {
     getMe()
       .then((me) => {
-        if (me) {
-          setUser(me)
-          setView({ kind: 'form' })
-        } else {
-          setView({ kind: 'login' })
-        }
+        setUser(me)
+        setAuthChecked(true)
       })
       .catch(() => {
-        // Network error — fall back to login screen
-        setView({ kind: 'login' })
+        setAuthChecked(true)
       })
   }, [])
 
@@ -60,68 +36,38 @@ function App() {
     try {
       await logout()
     } finally {
-      // Even if the logout request fails, clear local state — the user considers themselves logged out
+      // Even if the request fails, clear state — the user considers themselves logged out
       setUser(null)
-      setView({ kind: 'login' })
     }
   }
 
-  // useCallback memoizes these functions so they don't change on every render.
-  // This matters because ProgressTracker's useEffect depends on onComplete and onError —
-  // if they were new function references on every render, the effect would re-run constantly.
-  const handleAuditStarted = useCallback((auditId: number, inputLabel: string) => {
-    setView({ kind: 'progress', auditId, inputLabel })
-  }, [])
+  // Blank screen while /auth/me is in flight — faster than a spinner and avoids layout flash
+  if (!authChecked) return <div className="min-h-screen bg-gray-950" />
 
-  const handleComplete = useCallback((report: AuditReportType) => {
-    // inputLabel is carried in the progress view state — read it from there
-    setView((prev) => ({
-      kind: 'report',
-      report,
-      inputLabel: prev.kind === 'progress' ? prev.inputLabel : '',
-    }))
-  }, [])
+  return (
+    <Routes>
+      {/* Public root: redirect authenticated users to the form */}
+      <Route path="/" element={user ? <Navigate to="/new" replace /> : <LoginPage />} />
 
-  const handleError = useCallback((message: string) => {
-    setView({ kind: 'error', message })
-  }, [])
+      {/* Protected routes: redirect to / when not logged in */}
+      <Route
+        path="/new"
+        element={
+          user ? <AuditForm user={user} onLogout={handleLogout} /> : <Navigate to="/" replace />
+        }
+      />
+      <Route
+        path="/history"
+        element={
+          user ? <HistoryPage user={user} onLogout={handleLogout} /> : <Navigate to="/" replace />
+        }
+      />
+      <Route path="/audit/:id" element={user ? <AuditPage /> : <Navigate to="/" replace />} />
 
-  const handleNewAudit = useCallback(() => {
-    setView({ kind: 'form' })
-  }, [])
-
-  // Render the correct view based on current state
-  switch (view.kind) {
-    case 'loading':
-      // Simple blank screen while the /auth/me request is in flight.
-      // A spinner here would flash for <100ms on fast connections and look worse than nothing.
-      return <div className="min-h-screen bg-gray-950" />
-
-    case 'login':
-      return <LoginPage />
-
-    case 'form':
-      // user is guaranteed non-null when view.kind === 'form' because we only
-      // set 'form' after a successful getMe() call that returned a user.
-      return <AuditForm user={user!} onAuditStarted={handleAuditStarted} onLogout={handleLogout} />
-
-    case 'progress':
-      return (
-        <ProgressTracker auditId={view.auditId} onComplete={handleComplete} onError={handleError} />
-      )
-
-    case 'report':
-      return (
-        <AuditReport
-          report={view.report}
-          inputLabel={view.inputLabel}
-          onNewAudit={handleNewAudit}
-        />
-      )
-
-    case 'error':
-      return <ErrorView message={view.message} onRetry={handleNewAudit} />
-  }
+      {/* Catch-all: redirect unknown paths to root */}
+      <Route path="*" element={<Navigate to="/" replace />} />
+    </Routes>
+  )
 }
 
 export default App

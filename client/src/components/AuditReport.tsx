@@ -4,12 +4,12 @@
 // and renders it. No state, no side effects, no API calls. Just props → UI.
 // These are called "dumb components" or "presentational components" in React.
 
+import { Link } from 'react-router-dom'
 import type { AuditReport as AuditReportType, Violation } from '../types.js'
 
 interface Props {
   report: AuditReportType
   inputLabel: string // the URL or filename that was audited
-  onNewAudit: () => void // called when the user clicks "Run another audit"
 }
 
 // Score badge color: green above 80, yellow 50-79, red below 50
@@ -92,7 +92,7 @@ function ViolationCard({ violation }: { violation: Violation }) {
   )
 }
 
-export function AuditReport({ report, inputLabel, onNewAudit }: Props) {
+export function AuditReport({ report, inputLabel }: Props) {
   const sortedViolations = [...report.violations].sort(
     (a, b) => SEVERITY_ORDER.indexOf(a.severity) - SEVERITY_ORDER.indexOf(b.severity)
   )
@@ -101,13 +101,15 @@ export function AuditReport({ report, inputLabel, onNewAudit }: Props) {
     <div className="min-h-screen bg-gray-950">
       {/* Top nav */}
       <nav className="flex items-center justify-between px-6 py-4 border-b border-gray-800">
-        <h1 className="text-white font-semibold text-lg">Accessibility Audit Tool</h1>
-        <button
-          onClick={onNewAudit}
-          className="bg-blue-600 hover:bg-blue-500 text-white text-sm font-medium px-4 py-2 rounded-lg transition-colors"
-        >
-          Run another audit
-        </button>
+        <div className="flex items-center gap-6">
+          <h1 className="text-white font-semibold text-lg">Accessibility Audit Tool</h1>
+          <Link to="/new" className="text-gray-400 hover:text-white text-sm transition-colors">
+            New Audit
+          </Link>
+          <Link to="/history" className="text-gray-400 hover:text-white text-sm transition-colors">
+            History
+          </Link>
+        </div>
       </nav>
 
       <div className="max-w-3xl mx-auto px-4 py-10">
