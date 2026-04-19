@@ -40,4 +40,6 @@ model Audit {
   status     String   @default("pending") // pending | running | complete | error
   result     Json?    // full audit output stored as JSON
   createdAt  DateTime @default(now())
+
+  @@index([userId]) // speeds up GET /audits — every history query filters by userId
 }
