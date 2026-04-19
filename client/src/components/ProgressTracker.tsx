@@ -155,7 +155,12 @@ export function ProgressTracker({ auditId, onComplete, onError }: Props) {
                     </svg>
                   ) : isActive ? (
                     // Spinner — CSS animation via Tailwind's animate-spin
-                    <svg className="w-5 h-5 animate-spin" fill="none" viewBox="0 0 24 24">
+                    <svg
+                      className="w-5 h-5 animate-spin"
+                      aria-label="Loading"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                    >
                       <circle
                         className="opacity-25"
                         cx="12"

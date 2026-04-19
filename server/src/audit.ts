@@ -18,6 +18,9 @@ import type { AuditReport } from './agents/types.js'
 
 const router = Router()
 
+// Maximum number of audits returned by GET /audits
+const AUDIT_LIMIT = 20
+
 // Per-user rate limit for POST /audit.
 // The global limiter in server.ts is IP-based — it won't stop a single logged-in
 // user from running dozens of audits and burning through Anthropic API credits.
@@ -276,7 +279,7 @@ router.get('/audits', requireAuth, async (req: Request, res: Response) => {
     const audits = await prisma.audit.findMany({
       where: { userId: req.session.userId },
       orderBy: { createdAt: 'desc' },
-      take: 20,
+      take: AUDIT_LIMIT,
       select: {
         id: true,
         status: true,

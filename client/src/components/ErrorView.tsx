@@ -18,6 +18,7 @@ export function ErrorView({ message, onRetry }: Props) {
           <div className="w-14 h-14 bg-red-900 rounded-full flex items-center justify-center mx-auto mb-5">
             <svg
               className="w-7 h-7 text-red-400"
+              aria-hidden="true"
               fill="none"
               viewBox="0 0 24 24"
               stroke="currentColor"
