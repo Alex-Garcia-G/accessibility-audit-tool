@@ -87,19 +87,51 @@ export async function runScanner(input: ScannerInput): Promise<ScanResult> {
     const controller = new AbortController()
     const timeout = setTimeout(() => controller.abort(), 10_000)
 
+    let res: Response
     try {
-      const res = await fetch(input.url, { signal: controller.signal })
-      if (!res.ok) throw new Error(`Failed to fetch URL: HTTP ${res.status}`)
-      rawHtml = await res.text()
+      res = await fetch(input.url, { signal: controller.signal })
+    } catch (err) {
+      // AbortError means our 10s timeout fired — the site is too slow or unresponsive.
+      // Any other fetch error (connection refused, TLS failure, etc.) gets a generic message.
+      if (err instanceof Error && err.name === 'AbortError') {
+        throw new Error(
+          'URL took too long to respond (10s timeout) — the site may be down or blocking automated requests',
+          { cause: err }
+        )
+      }
+      throw new Error(
+        'Could not reach the URL — check that the address is correct and the site is reachable',
+        { cause: err }
+      )
     } finally {
-      // Always clear the timeout — if fetch succeeded quickly, we don't want
-      // the timeout to fire later and abort an unrelated request.
       clearTimeout(timeout)
+    }
+
+    if (!res.ok) {
+      const statusMessages: Record<number, string> = {
+        401: 'URL requires authentication (HTTP 401) — only public pages can be audited',
+        403: 'URL is blocked — the site is refusing access (HTTP 403)',
+        404: 'URL was not found (HTTP 404) — check the address is correct',
+        429: 'URL is rate-limiting requests (HTTP 429) — try again in a few minutes',
+        500: 'URL returned a server error (HTTP 500) — the site may be having issues',
+        503: 'URL is temporarily unavailable (HTTP 503) — try again later',
+      }
+      throw new Error(statusMessages[res.status] ?? `URL returned an error (HTTP ${res.status})`)
+    }
+
+    rawHtml = await res.text()
+
+    if (rawHtml.trim().length === 0) {
+      throw new Error('URL returned an empty page — nothing to audit')
     }
   } else {
     // File upload path — the HTML is already in memory from multer
     inputLabel = 'uploaded-file.html'
     rawHtml = input.html
+
+    if (rawHtml.trim().length === 0) {
+      throw new Error('The uploaded file is empty — nothing to audit')
+    }
   }
 
   // Warn when HTML is truncated — the audit will still run but may miss
@@ -116,13 +148,15 @@ export async function runScanner(input: ScannerInput): Promise<ScanResult> {
   // We ask for JSON output so the result is machine-readable. Haiku is used
   // here because extraction is a structural task, not a reasoning task.
   return withRetry(async () => {
-    const message = await anthropic.messages.create({
-      model: MODELS.scanner,
-      max_tokens: 4096,
-      messages: [
-        {
-          role: 'user',
-          content: `You are an HTML preprocessor for a WCAG accessibility auditing tool.
+    // signal in RequestOptions (2nd arg). 30s — Haiku extraction should be fast.
+    const message = await anthropic.messages.create(
+      {
+        model: MODELS.scanner,
+        max_tokens: 4096,
+        messages: [
+          {
+            role: 'user',
+            content: `You are an HTML preprocessor for a WCAG accessibility auditing tool.
 
 Extract ONLY the elements relevant to accessibility from the HTML below.
 
@@ -148,12 +182,14 @@ Respond ONLY with valid JSON in this exact shape — no markdown, no explanation
 
 HTML TO PROCESS:
 ${rawHtml.slice(0, TRUNCATE_LIMIT)}`,
-          // Slice to 150k chars as a safety limit — this keeps token usage
-          // predictable and prevents enormous pages from exceeding context windows.
-          // Real accessibility-relevant content is almost always in the first 150k chars.
-        },
-      ],
-    })
+            // Slice to 150k chars as a safety limit — this keeps token usage
+            // predictable and prevents enormous pages from exceeding context windows.
+            // Real accessibility-relevant content is almost always in the first 150k chars.
+          },
+        ],
+      },
+      { signal: AbortSignal.timeout(30_000) }
+    )
 
     const text = message.content[0]?.type === 'text' ? message.content[0].text : ''
 
