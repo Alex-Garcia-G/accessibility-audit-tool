@@ -82,6 +82,9 @@ export async function runAuditor(scanResult: ScanResult): Promise<Violation[]> {
     const message = await anthropic.messages.create({
       model: MODELS.auditor,
       max_tokens: 8192,
+      // 90s per attempt — Sonnet doing WCAG reasoning over large HTML can be slow.
+      // AbortSignal.timeout() is per-call, so each withRetry attempt gets a fresh 90s.
+      signal: AbortSignal.timeout(90_000),
       // system as an array (not a plain string) is required to attach cache_control.
       // The Anthropic SDK accepts: system?: string | Array<TextBlockParam>
       // Using the array form lets us tag individual blocks for caching.

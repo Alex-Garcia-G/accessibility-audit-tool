@@ -76,6 +76,8 @@ export async function runReporter(violations: ViolationWithSeverity[]): Promise<
     const message = await anthropic.messages.create({
       model: MODELS.reporter,
       max_tokens: 8192,
+      // 90s per attempt — Sonnet writing prose summaries and HTML fix snippets.
+      signal: AbortSignal.timeout(90_000),
       messages: [
         {
           role: 'user',

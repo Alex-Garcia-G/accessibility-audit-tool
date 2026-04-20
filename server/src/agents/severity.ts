@@ -29,6 +29,8 @@ export async function runSeverity(violations: Violation[]): Promise<ViolationWit
     const message = await anthropic.messages.create({
       model: MODELS.severity,
       max_tokens: 4096,
+      // 30s per attempt — Haiku doing simple classification, should be fast.
+      signal: AbortSignal.timeout(30_000),
       messages: [
         {
           role: 'user',
