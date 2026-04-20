@@ -26,15 +26,15 @@ export async function runSeverity(violations: Violation[]): Promise<ViolationWit
   if (violations.length === 0) return []
 
   return withRetry(async () => {
-    const message = await anthropic.messages.create({
-      model: MODELS.severity,
-      max_tokens: 4096,
-      // 30s per attempt — Haiku doing simple classification, should be fast.
-      signal: AbortSignal.timeout(30_000),
-      messages: [
-        {
-          role: 'user',
-          content: `You are a WCAG severity classifier. Add a "severity" field to each violation.
+    // signal goes in RequestOptions (2nd arg). Fresh 30s per retry attempt.
+    const message = await anthropic.messages.create(
+      {
+        model: MODELS.severity,
+        max_tokens: 4096,
+        messages: [
+          {
+            role: 'user',
+            content: `You are a WCAG severity classifier. Add a "severity" field to each violation.
 
 Severity definitions:
 - critical: Completely blocks access for users with disabilities
@@ -53,9 +53,11 @@ Return ONLY a valid JSON array. No markdown. No explanation.
 
 Violations:
 ${JSON.stringify(violations, null, 2)}`,
-        },
-      ],
-    })
+          },
+        ],
+      },
+      { signal: AbortSignal.timeout(30_000) }
+    )
 
     const text = message.content[0]?.type === 'text' ? message.content[0].text : '[]'
     const cleaned = text

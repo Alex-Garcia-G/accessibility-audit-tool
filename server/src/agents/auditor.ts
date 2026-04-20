@@ -79,37 +79,39 @@ If you find no violations, return an empty array: []`
 
 export async function runAuditor(scanResult: ScanResult): Promise<Violation[]> {
   return withRetry(async () => {
-    const message = await anthropic.messages.create({
-      model: MODELS.auditor,
-      max_tokens: 8192,
-      // 90s per attempt — Sonnet doing WCAG reasoning over large HTML can be slow.
-      // AbortSignal.timeout() is per-call, so each withRetry attempt gets a fresh 90s.
-      signal: AbortSignal.timeout(90_000),
-      // system as an array (not a plain string) is required to attach cache_control.
-      // The Anthropic SDK accepts: system?: string | Array<TextBlockParam>
-      // Using the array form lets us tag individual blocks for caching.
-      system: [
-        {
-          type: 'text',
-          text: AUDITOR_SYSTEM_PROMPT,
-          // ephemeral cache: stored for up to 5 minutes on Anthropic's servers.
-          // Every audit that runs within that window gets a cache hit on this block.
-          cache_control: { type: 'ephemeral' },
-        },
-      ],
-      messages: [
-        {
-          role: 'user',
-          content: `Audit this HTML for WCAG 2.1 Level AA violations.
+    // signal is a RequestOptions field (2nd arg), not inside the body.
+    // Constructed here so each withRetry attempt gets a fresh 90s timeout.
+    const message = await anthropic.messages.create(
+      {
+        model: MODELS.auditor,
+        max_tokens: 8192,
+        // system as an array (not a plain string) is required to attach cache_control.
+        // The Anthropic SDK accepts: system?: string | Array<TextBlockParam>
+        // Using the array form lets us tag individual blocks for caching.
+        system: [
+          {
+            type: 'text',
+            text: AUDITOR_SYSTEM_PROMPT,
+            // ephemeral cache: stored for up to 5 minutes on Anthropic's servers.
+            // Every audit that runs within that window gets a cache hit on this block.
+            cache_control: { type: 'ephemeral' },
+          },
+        ],
+        messages: [
+          {
+            role: 'user',
+            content: `Audit this HTML for WCAG 2.1 Level AA violations.
 
 Page title: ${scanResult.title}
 Source: ${scanResult.inputType === 'url' ? scanResult.inputLabel : 'uploaded HTML file'}
 
 HTML:
 ${scanResult.html}`,
-        },
-      ],
-    })
+          },
+        ],
+      },
+      { signal: AbortSignal.timeout(90_000) }
+    )
 
     const text = message.content[0]?.type === 'text' ? message.content[0].text : '[]'
     const cleaned = text

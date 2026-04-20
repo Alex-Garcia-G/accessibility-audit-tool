@@ -73,15 +73,15 @@ export async function runReporter(violations: ViolationWithSeverity[]): Promise<
       .map((v, i) => ({ index: i, violation: v }))
       .filter((x) => x.violation.severity === 'critical' || x.violation.severity === 'serious')
 
-    const message = await anthropic.messages.create({
-      model: MODELS.reporter,
-      max_tokens: 8192,
-      // 90s per attempt — Sonnet writing prose summaries and HTML fix snippets.
-      signal: AbortSignal.timeout(90_000),
-      messages: [
-        {
-          role: 'user',
-          content: `You are an accessibility report writer. Produce a JSON report for the violations below.
+    // signal goes in RequestOptions (2nd arg). Fresh 90s per retry attempt.
+    const message = await anthropic.messages.create(
+      {
+        model: MODELS.reporter,
+        max_tokens: 8192,
+        messages: [
+          {
+            role: 'user',
+            content: `You are an accessibility report writer. Produce a JSON report for the violations below.
 
 The accessibility score has already been calculated: ${score}/100
 Use this exact score — do not recalculate it.
@@ -106,9 +106,11 @@ ${JSON.stringify(violations, null, 2)}
 
 High-priority violations needing fix examples:
 ${JSON.stringify(highPriority, null, 2)}`,
-        },
-      ],
-    })
+          },
+        ],
+      },
+      { signal: AbortSignal.timeout(90_000) }
+    )
 
     const text = message.content[0]?.type === 'text' ? message.content[0].text : '{}'
     const cleaned = text
