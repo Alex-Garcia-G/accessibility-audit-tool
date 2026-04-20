@@ -79,3 +79,9 @@ export async function getAudits(): Promise<AuditListItem[]> {
   if (!res.ok) throw new Error(`GET /audits failed: ${res.status}`)
   return res.json() as Promise<AuditListItem[]>
 }
+
+// Permanently delete an audit. Throws on non-2xx.
+export async function deleteAudit(auditId: number): Promise<void> {
+  const res = await fetch(`/audit/${auditId}`, { method: 'DELETE' })
+  await throwOnError(res, `DELETE /audit/${auditId} failed: ${res.status}`)
+}

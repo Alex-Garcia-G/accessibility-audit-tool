@@ -270,6 +270,36 @@ router.get('/audit/:id/stream', requireAuth, async (req: Request, res: Response)
   req.on('close', cleanup)
 })
 
+// ── DELETE /audit/:id ──────────────────────────────────────────────────────
+// Permanently removes an audit and its result from the database.
+// Same 404-before-403 ordering as GET /audit/:id to avoid leaking existence
+// of other users' audits.
+router.delete('/audit/:id', requireAuth, async (req: Request, res: Response) => {
+  const auditId = parseInt(String(req.params.id), 10)
+  if (isNaN(auditId)) {
+    res.status(400).json({ error: 'Invalid audit ID' })
+    return
+  }
+
+  try {
+    const audit = await prisma.audit.findUnique({ where: { id: auditId } })
+    if (!audit) {
+      res.status(404).json({ error: 'Audit not found' })
+      return
+    }
+    if (audit.userId !== req.session.userId) {
+      res.status(403).json({ error: 'Access denied' })
+      return
+    }
+
+    await prisma.audit.delete({ where: { id: auditId } })
+    res.status(204).end()
+  } catch (err) {
+    logger.error({ err, auditId }, 'Failed to delete audit')
+    res.status(500).json({ error: 'Failed to delete audit' })
+  }
+})
+
 // ── GET /audits ────────────────────────────────────────────────────────────
 // Returns the current user's 20 most recent audits, newest first.
 // Does NOT include the result JSON — that field can be large and isn't needed

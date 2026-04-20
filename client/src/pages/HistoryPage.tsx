@@ -5,7 +5,7 @@
 
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { getAudits } from '../api.js'
+import { getAudits, deleteAudit } from '../api.js'
 import type { AuditListItem, CurrentUser } from '../types.js'
 import { SCORE_GREEN, SCORE_YELLOW } from '../constants.js'
 
@@ -47,12 +47,25 @@ function formatDate(iso: string): string {
 export function HistoryPage({ user, onLogout }: Props) {
   const [audits, setAudits] = useState<AuditListItem[] | null>(null)
   const [loadError, setLoadError] = useState(false)
+  const [deletingId, setDeletingId] = useState<number | null>(null)
 
   useEffect(() => {
     getAudits()
       .then(setAudits)
       .catch(() => setLoadError(true))
   }, [])
+
+  async function handleDelete(auditId: number) {
+    setDeletingId(auditId)
+    try {
+      await deleteAudit(auditId)
+      setAudits((prev) => prev?.filter((a) => a.id !== auditId) ?? prev)
+    } catch {
+      // If the delete fails, just re-enable the button — the row stays in the list.
+    } finally {
+      setDeletingId(null)
+    }
+  }
 
   return (
     <div className="min-h-screen bg-gray-950 flex flex-col">
@@ -115,31 +128,59 @@ export function HistoryPage({ user, onLogout }: Props) {
         {audits !== null && audits.length > 0 && (
           <div className="space-y-3">
             {audits.map((audit) => (
-              <Link
+              <div
                 key={audit.id}
-                to={`/audit/${audit.id}`}
-                className="flex items-center justify-between bg-gray-900 border border-gray-800 rounded-xl px-5 py-4 hover:border-gray-600 transition-colors group"
+                className="flex items-center bg-gray-900 border border-gray-800 rounded-xl hover:border-gray-600 transition-colors group"
               >
-                {/* Left: input type icon + label */}
-                <div className="flex items-center gap-3 min-w-0">
-                  <span className="text-gray-600 text-xs font-mono flex-shrink-0 uppercase">
-                    {audit.inputType}
-                  </span>
-                  <span className="text-gray-200 text-sm truncate group-hover:text-white transition-colors">
-                    {audit.inputLabel}
-                  </span>
-                </div>
+                {/* Clickable area — navigates to the report */}
+                <Link
+                  to={`/audit/${audit.id}`}
+                  className="flex-1 flex items-center justify-between px-5 py-4 min-w-0"
+                >
+                  {/* Left: input type icon + label */}
+                  <div className="flex items-center gap-3 min-w-0">
+                    <span className="text-gray-600 text-xs font-mono flex-shrink-0 uppercase">
+                      {audit.inputType}
+                    </span>
+                    <span className="text-gray-200 text-sm truncate group-hover:text-white transition-colors">
+                      {audit.inputLabel}
+                    </span>
+                  </div>
 
-                {/* Right: score badge + date */}
-                <div className="flex items-center gap-4 flex-shrink-0 ml-4">
-                  <span
-                    className={`text-xs font-bold px-2.5 py-1 rounded-full ${scoreBadgeClass(audit.score, audit.status)}`}
+                  {/* Right: score badge + date */}
+                  <div className="flex items-center gap-4 flex-shrink-0 ml-4">
+                    <span
+                      className={`text-xs font-bold px-2.5 py-1 rounded-full ${scoreBadgeClass(audit.score, audit.status)}`}
+                    >
+                      {scoreBadgeText(audit.score, audit.status)}
+                    </span>
+                    <span className="text-gray-600 text-xs">{formatDate(audit.createdAt)}</span>
+                  </div>
+                </Link>
+
+                {/* Delete button */}
+                <button
+                  onClick={() => handleDelete(audit.id)}
+                  disabled={deletingId === audit.id}
+                  aria-label={`Delete audit for ${audit.inputLabel}`}
+                  className="px-4 py-4 text-gray-700 hover:text-red-400 disabled:opacity-40 transition-colors flex-shrink-0"
+                >
+                  <svg
+                    className="w-4 h-4"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                    strokeWidth={2}
+                    aria-hidden="true"
                   >
-                    {scoreBadgeText(audit.score, audit.status)}
-                  </span>
-                  <span className="text-gray-600 text-xs">{formatDate(audit.createdAt)}</span>
-                </div>
-              </Link>
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                    />
+                  </svg>
+                </button>
+              </div>
             ))}
           </div>
         )}
