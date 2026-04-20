@@ -102,9 +102,29 @@ export function HistoryPage({ user, onLogout }: Props) {
       <div className="max-w-3xl mx-auto w-full px-4 py-10">
         <h2 className="text-white text-2xl font-bold mb-6">Audit History</h2>
 
-        {/* Loading state */}
+        {/* Skeleton loading state — placeholder rows that match the real row layout */}
         {audits === null && !loadError && (
-          <div className="text-gray-500 text-sm text-center py-16">Loading…</div>
+          <div className="space-y-3 animate-pulse">
+            {Array.from({ length: 5 }).map((_, i) => (
+              <div
+                key={i}
+                className="flex items-center bg-gray-900 border border-gray-800 rounded-xl px-5 py-4"
+              >
+                {/* Left: type badge + label */}
+                <div className="flex items-center gap-3 flex-1 min-w-0">
+                  <div className="h-3.5 w-8 bg-gray-800 rounded flex-shrink-0" />
+                  <div className="h-3.5 bg-gray-800 rounded w-48" />
+                </div>
+                {/* Right: score badge + date */}
+                <div className="flex items-center gap-4 flex-shrink-0 ml-4">
+                  <div className="h-5 w-10 bg-gray-800 rounded-full" />
+                  <div className="h-3.5 w-14 bg-gray-800 rounded" />
+                </div>
+                {/* Trash icon placeholder */}
+                <div className="ml-4 h-4 w-4 bg-gray-800 rounded flex-shrink-0" />
+              </div>
+            ))}
+          </div>
         )}
 
         {/* Error state */}
