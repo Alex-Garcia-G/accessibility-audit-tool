@@ -150,7 +150,7 @@ export function HistoryPage({ user, onLogout }: Props) {
             {audits.map((audit) => (
               <div
                 key={audit.id}
-                className="flex items-center bg-gray-900 border border-gray-800 rounded-xl hover:border-gray-600 transition-colors group"
+                className="flex items-center bg-gray-900 border border-gray-800 rounded-xl hover:border-gray-700 hover:bg-gray-800/50 transition-all group"
               >
                 {/* Clickable area — navigates to the report */}
                 <Link
@@ -159,10 +159,16 @@ export function HistoryPage({ user, onLogout }: Props) {
                 >
                   {/* Left: input type icon + label */}
                   <div className="flex items-center gap-3 min-w-0">
-                    <span className="text-gray-600 text-xs font-mono flex-shrink-0 uppercase">
+                    <span
+                      className={`text-xs font-semibold px-2 py-0.5 rounded flex-shrink-0 uppercase ${
+                        audit.inputType === 'url'
+                          ? 'bg-blue-950 text-blue-400 border border-blue-900'
+                          : 'bg-purple-950 text-purple-400 border border-purple-900'
+                      }`}
+                    >
                       {audit.inputType}
                     </span>
-                    <span className="text-gray-200 text-sm truncate group-hover:text-white transition-colors">
+                    <span className="text-gray-300 text-sm truncate group-hover:text-white transition-colors">
                       {audit.inputLabel}
                     </span>
                   </div>
@@ -183,7 +189,7 @@ export function HistoryPage({ user, onLogout }: Props) {
                   onClick={() => handleDelete(audit.id)}
                   disabled={deletingId === audit.id}
                   aria-label={`Delete audit for ${audit.inputLabel}`}
-                  className="px-4 py-4 text-gray-700 hover:text-red-400 disabled:opacity-40 transition-colors flex-shrink-0"
+                  className="px-4 py-4 text-gray-600 hover:text-red-400 hover:bg-red-950/30 rounded-r-xl disabled:opacity-40 transition-all flex-shrink-0"
                 >
                   <svg
                     className="w-4 h-4"
