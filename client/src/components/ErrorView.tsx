@@ -12,10 +12,9 @@ export function ErrorView({ message, onRetry }: Props) {
   return (
     <div className="min-h-screen bg-gray-950 flex items-center justify-center px-4">
       <div className="w-full max-w-md">
-        {/* Error card */}
-        <div className="bg-red-950 border border-red-900 rounded-2xl p-8 text-center">
+        <div className="bg-gray-900 border border-red-900/60 rounded-2xl p-8 text-center shadow-xl">
           {/* Icon */}
-          <div className="w-14 h-14 bg-red-900 rounded-full flex items-center justify-center mx-auto mb-5">
+          <div className="w-14 h-14 bg-red-950 border border-red-900 rounded-full flex items-center justify-center mx-auto mb-5">
             <svg
               className="w-7 h-7 text-red-400"
               aria-hidden="true"
@@ -32,13 +31,13 @@ export function ErrorView({ message, onRetry }: Props) {
             </svg>
           </div>
 
-          <h2 className="text-white text-xl font-bold mb-2">Audit Failed</h2>
+          <h2 className="text-white text-xl font-bold mb-3">Audit Failed</h2>
 
-          <p className="text-red-300 text-sm leading-relaxed mb-8">{message}</p>
+          <p className="text-gray-300 text-sm leading-relaxed mb-8">{message}</p>
 
           <button
             onClick={onRetry}
-            className="w-full bg-white text-gray-900 font-semibold py-3 rounded-lg hover:bg-gray-100 transition-colors"
+            className="w-full bg-blue-600 hover:bg-blue-500 text-white font-semibold py-3 rounded-lg transition-colors"
           >
             Try again
           </button>
