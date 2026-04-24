@@ -105,16 +105,30 @@ export function ProgressTracker({ auditId, onComplete, onError }: Props) {
     }
   }, [auditId, onComplete, onError])
 
+  const completedCount = completedStages.size
+  const totalStages = STAGES.length
+
   return (
     <div className="min-h-screen bg-gray-950 flex items-center justify-center px-4">
       <div className="w-full max-w-md">
-        <h2 className="text-white text-2xl font-bold mb-2 text-center">Running Audit</h2>
-        <p className="text-gray-400 text-sm text-center mb-10">
-          This takes 20–60 seconds. Your report will appear automatically when it's ready.
+        <h2 className="text-white text-2xl font-bold mb-1 text-center">Running Audit</h2>
+        <p className="text-gray-400 text-sm text-center mb-2">
+          This takes 20-60 seconds. Your report will appear automatically when it's ready.
+        </p>
+        <p className="text-gray-600 text-xs text-center mb-6">
+          Step {Math.min(completedCount + (activeStage ? 1 : 0), totalStages)} of {totalStages}
         </p>
 
+        {/* Thin progress bar */}
+        <div className="h-1 bg-gray-800 rounded-full mb-8 overflow-hidden">
+          <div
+            className="h-full bg-blue-500 rounded-full transition-all duration-700"
+            style={{ width: `${(completedCount / totalStages) * 100}%` }}
+          />
+        </div>
+
         {/* Stage list */}
-        <div className="space-y-4">
+        <div className="space-y-3">
           {STAGES.map((stage, index) => {
             const isComplete = completedStages.has(stage.key)
             const isActive = activeStage === stage.key
@@ -124,26 +138,25 @@ export function ProgressTracker({ auditId, onComplete, onError }: Props) {
             return (
               <div
                 key={stage.key}
-                className={`flex items-center gap-4 p-4 rounded-xl border transition-colors ${
+                className={`flex items-center gap-4 p-4 rounded-xl border transition-all duration-300 ${
                   isComplete
                     ? 'border-green-800 bg-green-950'
                     : isActive
-                      ? 'border-blue-700 bg-blue-950'
+                      ? 'border-blue-700 bg-blue-950 shadow-lg shadow-blue-950/50'
                       : 'border-gray-800 bg-gray-900'
                 }`}
               >
                 {/* Step number / status icon */}
                 <div
-                  className={`w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 text-sm font-bold ${
+                  className={`w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 text-sm font-bold transition-colors ${
                     isComplete
                       ? 'bg-green-600 text-white'
                       : isActive
                         ? 'bg-blue-600 text-white'
-                        : 'bg-gray-800 text-gray-500'
+                        : 'bg-gray-800 text-gray-600'
                   }`}
                 >
                   {isComplete ? (
-                    // Checkmark SVG
                     <svg
                       className="w-5 h-5"
                       fill="none"
@@ -154,7 +167,6 @@ export function ProgressTracker({ auditId, onComplete, onError }: Props) {
                       <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
                     </svg>
                   ) : isActive ? (
-                    // Spinner — CSS animation via Tailwind's animate-spin
                     <svg
                       className="w-5 h-5 animate-spin"
                       aria-label="Loading"
@@ -190,7 +202,11 @@ export function ProgressTracker({ auditId, onComplete, onError }: Props) {
                     {stage.label}
                   </div>
                   {(isActive || isUpcoming) && (
-                    <div className="text-gray-600 text-xs mt-0.5">{stage.description}</div>
+                    <div
+                      className={`text-xs mt-0.5 ${isActive ? 'text-blue-400/70' : 'text-gray-600'}`}
+                    >
+                      {stage.description}
+                    </div>
                   )}
                   {isComplete && <div className="text-green-600 text-xs mt-0.5">Complete</div>}
                 </div>
