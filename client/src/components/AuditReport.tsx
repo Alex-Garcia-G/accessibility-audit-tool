@@ -30,20 +30,32 @@ function scoreBg(score: number): string {
 // Severity badge colors
 const SEVERITY_STYLES: Record<
   Violation['severity'],
-  { badge: string; border: string; bg: string }
+  { badge: string; border: string; bg: string; accent: string }
 > = {
-  critical: { badge: 'bg-red-900 text-red-300', border: 'border-red-900', bg: 'bg-red-950' },
+  critical: {
+    badge: 'bg-red-900 text-red-300',
+    border: 'border-red-900',
+    bg: 'bg-red-950',
+    accent: 'bg-red-500',
+  },
   serious: {
     badge: 'bg-orange-900 text-orange-300',
     border: 'border-orange-900',
     bg: 'bg-orange-950',
+    accent: 'bg-orange-500',
   },
   moderate: {
     badge: 'bg-yellow-900 text-yellow-300',
     border: 'border-yellow-900',
     bg: 'bg-yellow-950',
+    accent: 'bg-yellow-500',
   },
-  minor: { badge: 'bg-gray-800 text-gray-300', border: 'border-gray-800', bg: 'bg-gray-900' },
+  minor: {
+    badge: 'bg-gray-800 text-gray-300',
+    border: 'border-gray-800',
+    bg: 'bg-gray-900',
+    accent: 'bg-gray-600',
+  },
 }
 
 // Order violations by severity (worst first)
@@ -53,43 +65,55 @@ function ViolationCard({ violation }: { violation: Violation }) {
   const styles = SEVERITY_STYLES[violation.severity]
 
   return (
-    <div className={`rounded-xl border ${styles.border} ${styles.bg} p-5`}>
-      {/* Header row: WCAG criterion + severity badge */}
-      <div className="flex items-start justify-between gap-4 mb-3">
-        <div>
-          <span className="text-gray-400 text-xs font-mono">{violation.wcagCriteria}</span>
-          <p className="text-white font-medium mt-1">{violation.description}</p>
+    <div className={`rounded-xl border ${styles.border} ${styles.bg} overflow-hidden`}>
+      {/* Colored left accent bar — quick visual indicator of severity */}
+      <div className="flex">
+        <div className={`w-1 flex-shrink-0 ${styles.accent}`} />
+        <div className="flex-1 p-5">
+          {/* Header row: WCAG criterion + severity badge */}
+          <div className="flex items-start justify-between gap-4 mb-3">
+            <div>
+              <span className="text-gray-500 text-xs font-mono">{violation.wcagCriteria}</span>
+              <p className="text-white font-medium mt-1">{violation.description}</p>
+            </div>
+            <span
+              className={`text-xs font-semibold px-2.5 py-1 rounded-full flex-shrink-0 capitalize ${styles.badge}`}
+            >
+              {violation.severity}
+            </span>
+          </div>
+
+          {/* Offending element */}
+          <div className="mb-3">
+            <div className="text-gray-500 text-xs font-medium mb-1.5 uppercase tracking-wide">
+              Affected element
+            </div>
+            <pre className="text-gray-300 text-xs bg-gray-950 rounded-lg px-4 py-3 overflow-x-auto whitespace-pre-wrap break-all border border-gray-800">
+              {violation.element}
+            </pre>
+          </div>
+
+          {/* Suggestion */}
+          <div className="mb-3">
+            <div className="text-gray-500 text-xs font-medium mb-1.5 uppercase tracking-wide">
+              How to fix
+            </div>
+            <p className="text-gray-300 text-sm leading-relaxed">{violation.suggestion}</p>
+          </div>
+
+          {/* Fix example — only present on critical/serious violations */}
+          {violation.fixExample && (
+            <div>
+              <div className="text-gray-500 text-xs font-medium mb-1.5 uppercase tracking-wide">
+                Fixed code
+              </div>
+              <pre className="text-green-300 text-xs bg-gray-950 rounded-lg px-4 py-3 overflow-x-auto whitespace-pre-wrap break-all border border-green-900">
+                {violation.fixExample}
+              </pre>
+            </div>
+          )}
         </div>
-        <span
-          className={`text-xs font-semibold px-2.5 py-1 rounded-full flex-shrink-0 capitalize ${styles.badge}`}
-        >
-          {violation.severity}
-        </span>
       </div>
-
-      {/* Offending element */}
-      <div className="mb-3">
-        <div className="text-gray-500 text-xs mb-1">Affected element</div>
-        <pre className="text-gray-300 text-xs bg-gray-900 rounded-lg px-4 py-3 overflow-x-auto whitespace-pre-wrap break-all">
-          {violation.element}
-        </pre>
-      </div>
-
-      {/* Suggestion */}
-      <div className="mb-3">
-        <div className="text-gray-500 text-xs mb-1">How to fix</div>
-        <p className="text-gray-300 text-sm">{violation.suggestion}</p>
-      </div>
-
-      {/* Fix example — only present on critical/serious violations */}
-      {violation.fixExample && (
-        <div>
-          <div className="text-gray-500 text-xs mb-1">Fixed code</div>
-          <pre className="text-green-300 text-xs bg-gray-900 rounded-lg px-4 py-3 overflow-x-auto whitespace-pre-wrap break-all border border-green-900">
-            {violation.fixExample}
-          </pre>
-        </div>
-      )}
     </div>
   )
 }
@@ -123,15 +147,25 @@ export function AuditReport({ report, inputLabel }: Props) {
 
       <div className="max-w-3xl mx-auto px-4 py-10">
         {/* Score + summary */}
-        <div className={`rounded-2xl border ${scoreBg(report.score)} p-8 mb-8 text-center`}>
-          <div className="text-gray-400 text-sm mb-2 truncate">Audit for: {inputLabel}</div>
-          <div className={`text-8xl font-black mb-2 ${scoreColor(report.score)}`}>
-            {report.score}
+        <div className={`rounded-2xl border ${scoreBg(report.score)} p-8 mb-8`}>
+          <div className="flex flex-col sm:flex-row items-center gap-8">
+            {/* Score circle */}
+            <div className="text-center flex-shrink-0">
+              <div className="text-gray-400 text-xs font-medium uppercase tracking-widest mb-2">
+                Accessibility Score
+              </div>
+              <div className={`text-7xl font-black leading-none ${scoreColor(report.score)}`}>
+                {report.score}
+              </div>
+              <div className="text-gray-500 text-sm mt-1">out of 100</div>
+            </div>
+            {/* Divider */}
+            <div className="hidden sm:block w-px self-stretch bg-gray-800" />
+            <div className="flex-1">
+              <div className="text-gray-400 text-xs font-medium mb-2 truncate">{inputLabel}</div>
+              <p className="text-gray-200 text-sm leading-relaxed">{report.summary}</p>
+            </div>
           </div>
-          <div className="text-gray-400 text-sm mb-6">out of 100</div>
-          <p className="text-gray-200 text-base leading-relaxed max-w-xl mx-auto">
-            {report.summary}
-          </p>
         </div>
 
         {/* Stats row */}
