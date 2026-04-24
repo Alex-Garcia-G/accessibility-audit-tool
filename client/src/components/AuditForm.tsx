@@ -120,20 +120,20 @@ export function AuditForm({ user, onLogout }: Props) {
 
           <form
             onSubmit={handleSubmit}
-            className="bg-gray-900 rounded-xl p-6 border border-gray-800"
+            className="bg-gray-900 rounded-2xl p-6 border border-gray-800 shadow-xl"
           >
             {/* Mode tabs */}
-            <div className="flex gap-2 mb-6">
+            <div className="flex gap-2 mb-6 p-1 bg-gray-800 rounded-lg">
               <button
-                type="button" // type="button" prevents this from submitting the form
+                type="button"
                 onClick={() => {
                   setMode('url')
                   setError(null)
                 }}
-                className={`flex-1 py-2 rounded-lg text-sm font-medium transition-colors ${
+                className={`flex-1 py-2 rounded-md text-sm font-medium transition-all ${
                   mode === 'url'
-                    ? 'bg-blue-600 text-white'
-                    : 'bg-gray-800 text-gray-400 hover:text-white'
+                    ? 'bg-gray-950 text-white shadow-sm'
+                    : 'text-gray-400 hover:text-gray-200'
                 }`}
               >
                 URL
@@ -144,10 +144,10 @@ export function AuditForm({ user, onLogout }: Props) {
                   setMode('file')
                   setError(null)
                 }}
-                className={`flex-1 py-2 rounded-lg text-sm font-medium transition-colors ${
+                className={`flex-1 py-2 rounded-md text-sm font-medium transition-all ${
                   mode === 'file'
-                    ? 'bg-blue-600 text-white'
-                    : 'bg-gray-800 text-gray-400 hover:text-white'
+                    ? 'bg-gray-950 text-white shadow-sm'
+                    : 'text-gray-400 hover:text-gray-200'
                 }`}
               >
                 HTML File
@@ -157,7 +157,7 @@ export function AuditForm({ user, onLogout }: Props) {
             {/* Input area — changes based on active mode */}
             {mode === 'url' ? (
               <div className="mb-4">
-                <label className="block text-gray-300 text-sm mb-2" htmlFor="url-input">
+                <label className="block text-gray-300 text-sm font-medium mb-2" htmlFor="url-input">
                   Website URL
                 </label>
                 <input
@@ -166,40 +166,80 @@ export function AuditForm({ user, onLogout }: Props) {
                   value={url}
                   onChange={(e) => setUrl(e.target.value)}
                   placeholder="https://example.com"
-                  className="w-full bg-gray-800 text-white rounded-lg px-4 py-3 text-sm placeholder-gray-600 border border-gray-700 focus:border-blue-500 focus:outline-none"
+                  className="w-full bg-gray-800 text-white rounded-lg px-4 py-3 text-sm placeholder-gray-600 border border-gray-700 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 focus:outline-none transition-colors"
                 />
               </div>
             ) : (
               <div className="mb-4">
-                <label className="block text-gray-300 text-sm mb-2" htmlFor="file-input">
-                  HTML File (max 1MB)
+                <label
+                  className="block text-gray-300 text-sm font-medium mb-2"
+                  htmlFor="file-input"
+                >
+                  HTML File
+                  <span className="text-gray-500 font-normal ml-1">(max 1 MB)</span>
                 </label>
                 <input
                   id="file-input"
                   type="file"
                   accept=".html,text/html"
                   onChange={(e) => setFile(e.target.files?.[0] ?? null)}
-                  className="w-full bg-gray-800 text-white rounded-lg px-4 py-3 text-sm border border-gray-700 focus:border-blue-500 focus:outline-none file:mr-3 file:py-1 file:px-3 file:rounded file:border-0 file:bg-gray-700 file:text-gray-300 file:text-xs"
+                  className="w-full bg-gray-800 text-white rounded-lg px-4 py-3 text-sm border border-gray-700 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 focus:outline-none transition-colors file:mr-3 file:py-1 file:px-3 file:rounded file:border-0 file:bg-gray-700 file:text-gray-300 file:text-xs hover:file:bg-gray-600"
                 />
               </div>
             )}
 
-            {/* Error message — role="alert" announces the error to screen readers */}
+            {/* Error message */}
             {error && (
               <div
                 role="alert"
-                className="mb-4 text-red-400 text-sm bg-red-950 border border-red-900 rounded-lg px-4 py-3"
+                className="mb-4 flex items-start gap-2.5 text-red-300 text-sm bg-red-950 border border-red-800 rounded-lg px-4 py-3"
               >
+                <svg
+                  className="w-4 h-4 flex-shrink-0 mt-0.5 text-red-400"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                  strokeWidth={2}
+                  aria-hidden="true"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z"
+                  />
+                </svg>
                 {error}
               </div>
             )}
 
-            {/* Submit button — disabled while loading to prevent double-submit */}
+            {/* Submit button */}
             <button
               type="submit"
               disabled={loading}
-              className="w-full bg-blue-600 hover:bg-blue-500 disabled:bg-gray-700 disabled:text-gray-500 text-white font-semibold py-3 rounded-lg transition-colors"
+              className="w-full bg-blue-600 hover:bg-blue-500 disabled:bg-gray-800 disabled:text-gray-500 disabled:cursor-not-allowed text-white font-semibold py-3 rounded-lg transition-colors flex items-center justify-center gap-2"
             >
+              {loading && (
+                <svg
+                  className="w-4 h-4 animate-spin"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  aria-hidden="true"
+                >
+                  <circle
+                    className="opacity-25"
+                    cx="12"
+                    cy="12"
+                    r="10"
+                    stroke="currentColor"
+                    strokeWidth="4"
+                  />
+                  <path
+                    className="opacity-75"
+                    fill="currentColor"
+                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"
+                  />
+                </svg>
+              )}
               {loading ? 'Starting audit…' : 'Run Audit'}
             </button>
           </form>
