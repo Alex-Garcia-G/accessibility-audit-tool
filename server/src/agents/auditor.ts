@@ -34,7 +34,7 @@ Analyze the provided HTML structure and identify all accessibility violations.
 For each violation, return a JSON object with EXACTLY these four fields:
 - wcagCriteria: the specific WCAG criterion violated, e.g. "1.1.1 Non-text Content (Level A)"
 - description: a precise description of the specific problem found in this HTML
-- element: the exact HTML snippet containing the violation (keep it short — just the relevant element)
+- element: the minimal HTML snippet showing the violation — 150 characters maximum, truncate with "..." if longer
 - suggestion: a clear, actionable recommendation to fix this specific issue
 
 WCAG 2.1 Level AA criteria to check:
@@ -105,7 +105,7 @@ export async function runAuditor(scanResult: ScanResult): Promise<Violation[]> {
 Page title: ${scanResult.title}
 Source: ${scanResult.inputType === 'url' ? scanResult.inputLabel : 'uploaded HTML file'}
 
-Return a maximum of 20 violations. If you find more than 20, prioritize the most impactful ones — prefer critical and serious severity over moderate and minor.
+Return a maximum of 15 violations. If you find more than 15, prioritize the most impactful ones — prefer critical and serious over moderate and minor. Keep each violation concise.
 
 HTML:
 ${scanResult.html}`,
