@@ -105,6 +105,8 @@ export async function runAuditor(scanResult: ScanResult): Promise<Violation[]> {
 Page title: ${scanResult.title}
 Source: ${scanResult.inputType === 'url' ? scanResult.inputLabel : 'uploaded HTML file'}
 
+Return a maximum of 20 violations. If you find more than 20, prioritize the most impactful ones — prefer critical and serious severity over moderate and minor.
+
 HTML:
 ${scanResult.html}`,
           },
