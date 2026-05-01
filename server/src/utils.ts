@@ -13,8 +13,13 @@ export async function withRetry<T>(fn: () => Promise<T>, maxAttempts = 3): Promi
     } catch (err) {
       lastError = err
       if (attempt < maxAttempts) {
-        // Wait 2^attempt seconds: 2s, 4s, 8s — gives the API time to recover
-        await new Promise((res) => setTimeout(res, 1000 * 2 ** attempt))
+        // Exponential backoff with ±25% jitter: 2s, 4s base, randomised each attempt.
+        // The jitter prevents a thundering herd when multiple concurrent audits hit
+        // the same transient API error and would otherwise all retry at exactly the
+        // same moment, causing another burst instead of spreading the load.
+        const base = 1000 * 2 ** attempt
+        const jitter = base * 0.25 * (Math.random() * 2 - 1)
+        await new Promise((res) => setTimeout(res, base + jitter))
       }
     }
   }
