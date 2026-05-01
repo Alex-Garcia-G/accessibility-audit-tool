@@ -32,7 +32,7 @@ import { ScanResultSchema, type ScanResult } from './types.js'
 //
 // We resolve the hostname via DNS first so that tricks like
 // http://evil.com (which resolves to 192.168.1.1) are also caught.
-async function assertPublicUrl(url: string): Promise<void> {
+export async function assertPublicUrl(url: string): Promise<void> {
   const { hostname, protocol } = new URL(url)
 
   if (protocol !== 'http:' && protocol !== 'https:') {
