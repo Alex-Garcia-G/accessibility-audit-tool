@@ -155,7 +155,8 @@ router.post(
 // ── GET /audit/:id ─────────────────────────────────────────────────────────
 // Returns the current state of an audit. The client can poll this every few
 // seconds, or just call it once after the SSE stream emits 'complete'.
-router.get('/audit/:id', requireAuth, async (req: Request, res: Response) => {
+// Guest audits (userId: null) are publicly readable by anyone who has the ID.
+router.get('/audit/:id', async (req: Request, res: Response) => {
   const auditId = parseInt(String(req.params.id), 10)
   if (isNaN(auditId)) {
     res.status(400).json({ error: 'Invalid audit ID' })
@@ -173,7 +174,9 @@ router.get('/audit/:id', requireAuth, async (req: Request, res: Response) => {
       return
     }
 
-    if (audit.userId !== req.session.userId) {
+    // Guest audits (userId: null) are public — anyone with the ID can read them.
+    // User audits require the session to match the owner.
+    if (audit.userId !== null && audit.userId !== req.session.userId) {
       res.status(403).json({ error: 'Access denied' })
       return
     }
@@ -202,14 +205,14 @@ router.get('/audit/:id', requireAuth, async (req: Request, res: Response) => {
 // SSE vs WebSockets: SSE is simpler (one-way server→client, plain HTTP,
 // built-in browser reconnect) and perfectly sufficient for progress updates
 // where the client only needs to listen, not send messages back.
-router.get('/audit/:id/stream', requireAuth, async (req: Request, res: Response) => {
+router.get('/audit/:id/stream', async (req: Request, res: Response) => {
   const auditId = parseInt(String(req.params.id), 10)
   if (isNaN(auditId)) {
     res.status(400).json({ error: 'Invalid audit ID' })
     return
   }
 
-  // Auth + ownership check must happen BEFORE we set SSE headers.
+  // Ownership check must happen BEFORE we set SSE headers.
   // Once we call res.setHeader() and res.flushHeaders(), we can no longer
   // change the HTTP status code — the response has started. So we check
   // everything first while we can still return clean 4xx responses.
@@ -219,7 +222,8 @@ router.get('/audit/:id/stream', requireAuth, async (req: Request, res: Response)
       res.status(404).json({ error: 'Audit not found' })
       return
     }
-    if (audit.userId !== req.session.userId) {
+    // Guest audits (userId: null) are public. User audits require ownership.
+    if (audit.userId !== null && audit.userId !== req.session.userId) {
       res.status(403).json({ error: 'Access denied' })
       return
     }
