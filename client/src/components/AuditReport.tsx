@@ -6,12 +6,13 @@
 
 import { useMemo } from 'react'
 import { Link } from 'react-router-dom'
-import type { AuditReport as AuditReportType, Violation } from '../types.js'
+import type { AuditReport as AuditReportType, CurrentUser, Violation } from '../types.js'
 import { SCORE_GREEN, SCORE_YELLOW } from '../constants.js'
 
 interface Props {
   report: AuditReportType
   inputLabel: string // the URL or filename that was audited
+  user?: CurrentUser | null
 }
 
 // Score badge color: green above SCORE_GREEN, yellow above SCORE_YELLOW, red below
@@ -118,7 +119,7 @@ function ViolationCard({ violation }: { violation: Violation }) {
   )
 }
 
-export function AuditReport({ report, inputLabel }: Props) {
+export function AuditReport({ report, inputLabel, user }: Props) {
   // useMemo caches the sorted array — the sort only re-runs if report.violations
   // changes, not on every render. The result is always the same while viewing a
   // report, so recomputing it on each render would be pure wasted work.
@@ -146,6 +147,21 @@ export function AuditReport({ report, inputLabel }: Props) {
       </nav>
 
       <div className="max-w-3xl mx-auto px-4 py-10">
+        {/* Sign-in CTA for guests */}
+        {!user && (
+          <div className="flex items-center justify-between bg-gray-900 border border-blue-800 rounded-xl px-5 py-4 mb-6">
+            <p className="text-gray-300 text-sm">
+              Sign in to save your audit history and access past reports.
+            </p>
+            <a
+              href="/auth/github"
+              className="ml-4 flex-shrink-0 bg-blue-600 hover:bg-blue-500 text-white text-sm font-semibold px-4 py-2 rounded-lg transition-colors"
+            >
+              Sign in with GitHub
+            </a>
+          </div>
+        )}
+
         {/* Score + summary */}
         <div className={`rounded-2xl border ${scoreBg(report.score)} p-8 mb-8`}>
           <div className="flex flex-col sm:flex-row items-center gap-8">
