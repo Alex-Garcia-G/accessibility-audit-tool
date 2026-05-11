@@ -46,23 +46,20 @@ function App() {
 
   return (
     <Routes>
-      {/* Public root: redirect authenticated users to the form */}
+      {/* Root: authenticated users go straight to the form, guests see login */}
       <Route path="/" element={user ? <Navigate to="/new" replace /> : <LoginPage />} />
 
-      {/* Protected routes: redirect to / when not logged in */}
-      <Route
-        path="/new"
-        element={
-          user ? <AuditForm user={user} onLogout={handleLogout} /> : <Navigate to="/" replace />
-        }
-      />
+      {/* Open to all — guests can run audits and view reports without an account */}
+      <Route path="/new" element={<AuditForm user={user} onLogout={handleLogout} />} />
+      <Route path="/audit/:id" element={<AuditPage user={user} />} />
+
+      {/* Protected — history requires an account */}
       <Route
         path="/history"
         element={
           user ? <HistoryPage user={user} onLogout={handleLogout} /> : <Navigate to="/" replace />
         }
       />
-      <Route path="/audit/:id" element={user ? <AuditPage /> : <Navigate to="/" replace />} />
 
       {/* Catch-all: redirect unknown paths to root */}
       <Route path="*" element={<Navigate to="/" replace />} />

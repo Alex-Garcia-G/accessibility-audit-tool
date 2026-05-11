@@ -15,7 +15,11 @@ import { getAudit } from '../api.js'
 import { ProgressTracker } from '../components/ProgressTracker.js'
 import { AuditReport } from '../components/AuditReport.js'
 import { ErrorView } from '../components/ErrorView.js'
-import type { AuditReport as AuditReportType } from '../types.js'
+import type { AuditReport as AuditReportType, CurrentUser } from '../types.js'
+
+interface Props {
+  user: CurrentUser | null
+}
 
 type PageView =
   | { kind: 'loading' }
@@ -23,7 +27,7 @@ type PageView =
   | { kind: 'report'; report: AuditReportType; inputLabel: string }
   | { kind: 'error'; message: string }
 
-export function AuditPage() {
+export function AuditPage({ user }: Props) {
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
   const auditId = parseInt(id ?? '', 10)
@@ -105,7 +109,7 @@ export function AuditPage() {
       return <ProgressTracker auditId={auditId} onComplete={handleComplete} onError={handleError} />
 
     case 'report':
-      return <AuditReport report={view.report} inputLabel={view.inputLabel} />
+      return <AuditReport report={view.report} inputLabel={view.inputLabel} user={user} />
 
     case 'error':
       return <ErrorView message={view.message} onRetry={() => navigate('/new')} />
