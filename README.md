@@ -8,6 +8,14 @@ An AI-powered web accessibility auditor. Paste a URL or upload an HTML file and 
 
 ---
 
+## Screenshots
+
+<!-- Add screenshots here once captured -->
+
+_Audit form, live progress tracker, and scored report with violations and code fixes._
+
+---
+
 ## What it does
 
 1. You submit a URL or HTML file
@@ -64,15 +72,19 @@ Each agent receives the previous agent's structured output. The score is calcula
 
 ## Tests
 
-Server-side tests use Vitest:
+Server-side tests use Vitest (35 tests, runs in under 400ms):
 
 ```bash
 npm test --prefix server
 ```
 
-**`server/src/agents/__tests__/reporter.test.ts`** — Unit tests for the score calculation algorithm. Covers the full deduction schedule, per-category caps, mixed severities, and the floor at zero.
+**`server/src/agents/__tests__/reporter.test.ts`** — Score calculation algorithm. Covers the full deduction schedule, per-category caps, mixed severities, and the floor at zero.
 
-**`server/src/agents/__tests__/pipeline.test.ts`** — Integration tests for the pipeline orchestrator with all agents and Prisma mocked. Verifies call order, DB persistence, SSE event emission, and error handling.
+**`server/src/agents/__tests__/pipeline.test.ts`** — Pipeline orchestrator with all agents and Prisma mocked. Verifies call order, DB persistence, SSE event emission, and error handling.
+
+**`server/src/__tests__/utils.test.ts`** — `withRetry` helper. Covers immediate success, retry on transient failure, exhausting all attempts, custom `maxAttempts`, and succeeding on the third attempt. Uses fake timers so no real delays occur.
+
+**`server/src/agents/__tests__/scanner.test.ts`** — SSRF protection (`assertPublicUrl`). Covers every blocked IP range (loopback, Class A/B/C private, AWS instance metadata endpoint, IPv6 loopback), protocol checks (file://, ftp://), and DNS failure handling.
 
 ---
 
