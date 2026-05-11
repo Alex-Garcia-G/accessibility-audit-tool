@@ -21,7 +21,7 @@ const router = Router()
 // Maximum number of audits returned by GET /audits
 const AUDIT_LIMIT = 20
 
-// Per-user rate limit for POST /audit.
+// Per-user rate limit for authenticated POST /audit requests.
 // The global limiter in server.ts is IP-based — it won't stop a single logged-in
 // user from running dozens of audits and burning through Anthropic API credits.
 // This limiter keys by userId so each account gets its own independent counter.
@@ -32,6 +32,18 @@ const auditRateLimit = rateLimit({
   standardHeaders: true,
   legacyHeaders: false,
   message: { error: 'Too many audits. You can run up to 10 per hour — please try again later.' },
+})
+
+// Stricter IP-based rate limit for unauthenticated (guest) audit requests.
+// Guests aren't tracked by account so we key by IP instead. 3/hour is enough
+// for a recruiter or developer to try the tool without enabling abuse.
+const guestAuditRateLimit = rateLimit({
+  windowMs: 60 * 60 * 1000, // 1 hour
+  max: 3, // 3 guest audits per IP per hour
+  keyGenerator: (req: Request) => req.ip ?? 'unknown',
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { error: 'Too many guest audits. Sign in with GitHub for a higher limit.' },
 })
 
 // multer processes multipart/form-data requests (file uploads).
@@ -58,15 +70,26 @@ const upload = multer({
 // Returns HTTP 202 (Accepted) with { auditId } immediately.
 // HTTP 202 means "I got your request and it's being processed" — it does NOT
 // mean the audit is complete. The client uses auditId to poll or stream progress.
+//
+// Authentication is optional. Logged-in users get auditRateLimit (10/hour by
+// userId). Guests get guestAuditRateLimit (3/hour by IP). Guest audits have
+// userId: null and are publicly readable by audit ID.
 router.post(
   '/audit',
-  requireAuth,
-  auditRateLimit,
+  (req, res, next) => {
+    // Apply the correct rate limiter based on auth state. Express rate limiters
+    // are middleware — calling one as a function and passing next chains it inline.
+    if (req.session.userId) {
+      return auditRateLimit(req, res, next)
+    }
+    return guestAuditRateLimit(req, res, next)
+  },
   // upload.single('file') handles multipart requests. For JSON requests it's a
   // no-op — multer simply calls next() if the content-type isn't multipart.
   upload.single('file'),
   async (req: Request, res: Response) => {
-    const userId = req.session.userId!
+    // null for guests — stored in DB, used to skip ownership checks on read
+    const userId = req.session.userId ?? null
 
     try {
       let inputType: string

@@ -73,7 +73,7 @@ function emit(auditId: number, event: PipelineEvent): void {
 // ── Main pipeline ──────────────────────────────────────────────────────────
 export async function runPipeline(
   input: ScannerInput,
-  _userId: number,
+  _userId: number | null,
   auditId: number
 ): Promise<void> {
   logger.info({ auditId }, 'Pipeline started')
