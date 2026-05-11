@@ -13,7 +13,7 @@ import { startUrlAudit, startFileAudit } from '../api.js'
 import type { CurrentUser } from '../types.js'
 
 interface Props {
-  user: CurrentUser
+  user: CurrentUser | null
   onLogout: () => void
 }
 
@@ -88,23 +88,34 @@ export function AuditForm({ user, onLogout }: Props) {
           </Link>
         </div>
         <div className="flex items-center gap-3">
-          {user.avatarUrl ? (
-            <img src={user.avatarUrl} alt={user.username} className="w-8 h-8 rounded-full" />
+          {user ? (
+            <>
+              {user.avatarUrl ? (
+                <img src={user.avatarUrl} alt={user.username} className="w-8 h-8 rounded-full" />
+              ) : (
+                <div
+                  className="w-8 h-8 rounded-full bg-blue-600 flex items-center justify-center text-sm text-white font-bold"
+                  aria-label={user.username}
+                >
+                  {user.username[0].toUpperCase()}
+                </div>
+              )}
+              <span className="text-gray-400 text-sm">{user.username}</span>
+              <button
+                onClick={onLogout}
+                className="text-gray-500 hover:text-gray-300 text-sm transition-colors"
+              >
+                Sign out
+              </button>
+            </>
           ) : (
-            <div
-              className="w-8 h-8 rounded-full bg-blue-600 flex items-center justify-center text-sm text-white font-bold"
-              aria-label={user.username}
+            <a
+              href="/auth/github"
+              className="text-sm text-blue-400 hover:text-blue-300 font-medium transition-colors"
             >
-              {user.username[0].toUpperCase()}
-            </div>
+              Sign in with GitHub
+            </a>
           )}
-          <span className="text-gray-400 text-sm">{user.username}</span>
-          <button
-            onClick={onLogout}
-            className="text-gray-500 hover:text-gray-300 text-sm transition-colors"
-          >
-            Sign out
-          </button>
         </div>
       </nav>
 
