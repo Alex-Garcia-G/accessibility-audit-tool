@@ -13,6 +13,7 @@ import { LoginPage } from './components/LoginPage.js'
 import { AuditForm } from './components/AuditForm.js'
 import { AuditPage } from './pages/AuditPage.js'
 import { HistoryPage } from './pages/HistoryPage.js'
+import { NotFoundPage } from './pages/NotFoundPage.js'
 import type { CurrentUser } from './types.js'
 
 function App() {
@@ -61,8 +62,8 @@ function App() {
         }
       />
 
-      {/* Catch-all: redirect unknown paths to root */}
-      <Route path="*" element={<Navigate to="/" replace />} />
+      {/* Catch-all: show a 404 page for unknown paths */}
+      <Route path="*" element={<NotFoundPage />} />
     </Routes>
   )
 }
