@@ -38,6 +38,24 @@ export function AuditPage({ user }: Props) {
     isNaN(auditId) ? { kind: 'error', message: 'Invalid audit ID' } : { kind: 'loading' }
   )
 
+  // Update the page title to reflect the current view state.
+  useEffect(() => {
+    switch (view.kind) {
+      case 'loading':
+        document.title = 'Loading… | Accessibility Audit Tool'
+        break
+      case 'progress':
+        document.title = 'Running Audit | Accessibility Audit Tool'
+        break
+      case 'report':
+        document.title = `${view.inputLabel} | Accessibility Audit Tool`
+        break
+      case 'error':
+        document.title = 'Audit Failed | Accessibility Audit Tool'
+        break
+    }
+  }, [view])
+
   // On mount, fetch the audit to determine its current state.
   // This determines whether we show live progress or a finished result.
   useEffect(() => {

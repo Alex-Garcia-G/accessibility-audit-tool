@@ -50,6 +50,10 @@ export function HistoryPage({ user, onLogout }: Props) {
   const [deletingId, setDeletingId] = useState<number | null>(null)
 
   useEffect(() => {
+    document.title = 'Audit History | Accessibility Audit Tool'
+  }, [])
+
+  useEffect(() => {
     getAudits()
       .then(setAudits)
       .catch(() => setLoadError(true))

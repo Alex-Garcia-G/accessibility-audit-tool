@@ -7,7 +7,7 @@
 //             we call it with the auditId so App.tsx can switch to the progress view.
 //             This is the standard React pattern: child notifies parent via a callback prop.
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { startUrlAudit, startFileAudit } from '../api.js'
 import type { CurrentUser } from '../types.js'
@@ -18,6 +18,9 @@ interface Props {
 }
 
 export function AuditForm({ user, onLogout }: Props) {
+  useEffect(() => {
+    document.title = 'New Audit | Accessibility Audit Tool'
+  }, [])
   const navigate = useNavigate()
   // Which tab is active: URL input or file upload
   const [mode, setMode] = useState<'url' | 'file'>('url')

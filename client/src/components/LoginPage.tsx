@@ -10,10 +10,14 @@
 // That URL redirects the browser to GitHub's OAuth page. We use window.location.href
 // instead of a React link because we're leaving the frontend entirely — going to github.com.
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 
 export function LoginPage() {
   const [loading, setLoading] = useState(false)
+
+  useEffect(() => {
+    document.title = 'Accessibility Audit Tool'
+  }, [])
 
   return (
     <div className="min-h-screen bg-gray-950 flex flex-col items-center justify-center px-4">
