@@ -10,9 +10,11 @@ An AI-powered web accessibility auditor. Paste a URL or upload an HTML file and 
 
 ## Screenshots
 
-<!-- Add screenshots here once captured -->
+![Audit form — paste a URL or upload an HTML file](docs/screenshots/01-audit-form.png)
 
-_Audit form, live progress tracker, and scored report with violations and code fixes._
+![Live progress tracker — four AI agents running in sequence](docs/screenshots/02-progress-tracker.png)
+
+![Scored report — violations prioritized by severity with AI-generated code fixes](docs/screenshots/03-audit-report.png)
 
 ---
 
