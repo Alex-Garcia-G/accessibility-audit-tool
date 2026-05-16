@@ -58,6 +58,9 @@ jobs:
       - name: Lint
         run: npm run lint
 
+      - name: Test
+        run: npm test
+
       # tsc -b + vite build — catches type errors and verifies the bundle compiles
       - name: Build
         run: npm run build
