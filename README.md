@@ -74,7 +74,9 @@ Each agent receives the previous agent's structured output. The score is calcula
 
 ## Tests
 
-Server-side tests use Vitest (35 tests, runs in under 400ms):
+44 tests across server and client, all running in CI.
+
+**Server** (35 tests, Vitest, Node environment):
 
 ```bash
 npm test --prefix server
@@ -87,6 +89,16 @@ npm test --prefix server
 **`server/src/__tests__/utils.test.ts`** — `withRetry` helper. Covers immediate success, retry on transient failure, exhausting all attempts, custom `maxAttempts`, and succeeding on the third attempt. Uses fake timers so no real delays occur.
 
 **`server/src/agents/__tests__/scanner.test.ts`** — SSRF protection (`assertPublicUrl`). Covers every blocked IP range (loopback, Class A/B/C private, AWS instance metadata endpoint, IPv6 loopback), protocol checks (file://, ftp://), and DNS failure handling.
+
+**Client** (9 tests, Vitest + React Testing Library, jsdom environment):
+
+```bash
+npm test --prefix client
+```
+
+**`client/src/__tests__/AuditForm.test.tsx`** — Form component behaviour. Covers default URL mode, tab switching to file mode, empty URL validation, non-http/https URL rejection, and successful navigation to the audit page after submission.
+
+**`client/src/__tests__/AuditReport.test.tsx`** — Report component rendering. Covers guest sign-in CTA visibility (shown when logged out, hidden when logged in), score display, and violation list rendering.
 
 ---
 
