@@ -214,7 +214,7 @@ export function AuditReport({ report, inputLabel, user }: Props) {
         </div>
 
         {/* Violations */}
-        {sortedViolations.length > 0 && (
+        {sortedViolations.length > 0 ? (
           <section className="mb-8">
             <h2 className="text-white text-xl font-bold mb-4">
               Violations ({sortedViolations.length})
@@ -223,6 +223,24 @@ export function AuditReport({ report, inputLabel, user }: Props) {
               {sortedViolations.map((violation, i) => (
                 <ViolationCard key={`${violation.wcagCriteria}-${i}`} violation={violation} />
               ))}
+            </div>
+          </section>
+        ) : (
+          <section className="mb-8">
+            <div className="flex items-center gap-3 bg-green-950 border border-green-800 rounded-xl px-5 py-4">
+              <svg
+                className="w-5 h-5 text-green-400 flex-shrink-0"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                strokeWidth={2.5}
+                aria-hidden="true"
+              >
+                <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+              </svg>
+              <p className="text-green-300 text-sm font-medium">
+                No violations found. This page meets all checked WCAG 2.1 AA criteria.
+              </p>
             </div>
           </section>
         )}
