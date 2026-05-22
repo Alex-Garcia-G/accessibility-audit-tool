@@ -53,10 +53,16 @@ export function HistoryPage({ user, onLogout }: Props) {
     document.title = 'Audit History | Accessibility Audit Tool'
   }, [])
 
-  useEffect(() => {
+  function loadAudits() {
+    setLoadError(false)
+    setAudits(null)
     getAudits()
       .then(setAudits)
       .catch(() => setLoadError(true))
+  }
+
+  useEffect(() => {
+    loadAudits()
   }, [])
 
   async function handleDelete(auditId: number) {
@@ -133,8 +139,14 @@ export function HistoryPage({ user, onLogout }: Props) {
 
         {/* Error state */}
         {loadError && (
-          <div role="alert" className="text-red-400 text-sm text-center py-16">
-            Failed to load audits.
+          <div role="alert" className="flex flex-col items-center gap-4 py-16">
+            <p className="text-red-400 text-sm">Failed to load audits.</p>
+            <button
+              onClick={loadAudits}
+              className="text-sm text-blue-400 hover:text-blue-300 transition-colors"
+            >
+              Try again
+            </button>
           </div>
         )}
 
