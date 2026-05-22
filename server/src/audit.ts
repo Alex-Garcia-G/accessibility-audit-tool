@@ -110,10 +110,17 @@ router.post(
 
         // new URL() throws a TypeError if the string isn't a valid URL.
         // Catching it here gives the client a clean 400 instead of a 500.
+        // We also explicitly reject non-http(s) schemes (data:, javascript:, ftp:, etc.)
+        // as an extra layer before the SSRF check in the scanner.
+        let parsedUrl: URL
         try {
-          new URL(url)
+          parsedUrl = new URL(url)
         } catch {
           res.status(400).json({ error: 'Invalid URL — must be a full URL including https://' })
+          return
+        }
+        if (parsedUrl.protocol !== 'http:' && parsedUrl.protocol !== 'https:') {
+          res.status(400).json({ error: 'Only http:// and https:// URLs are supported' })
           return
         }
 
