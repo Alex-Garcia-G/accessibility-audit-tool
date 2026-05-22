@@ -36,6 +36,11 @@ jobs:
       - name: Test
         run: npm test
 
+      - name: Build
+        run: npm run build
+        env:
+          DATABASE_URL: postgresql://test:test@localhost:5432/test
+
   client:
     name: Client — lint · typecheck · build
     runs-on: ubuntu-latest
@@ -57,6 +62,9 @@ jobs:
 
       - name: Lint
         run: npm run lint
+
+      - name: Type check
+        run: npm run typecheck
 
       - name: Test
         run: npm test
