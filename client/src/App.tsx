@@ -52,7 +52,7 @@ function App() {
 
       {/* Open to all — guests can run audits and view reports without an account */}
       <Route path="/new" element={<AuditForm user={user} onLogout={handleLogout} />} />
-      <Route path="/audit/:id" element={<AuditPage user={user} />} />
+      <Route path="/audit/:id" element={<AuditPage user={user} onLogout={handleLogout} />} />
 
       {/* Protected — history requires an account */}
       <Route

@@ -19,6 +19,7 @@ import type { AuditReport as AuditReportType, CurrentUser } from '../types.js'
 
 interface Props {
   user: CurrentUser | null
+  onLogout: () => void
 }
 
 type PageView =
@@ -27,7 +28,7 @@ type PageView =
   | { kind: 'report'; report: AuditReportType; inputLabel: string }
   | { kind: 'error'; message: string }
 
-export function AuditPage({ user }: Props) {
+export function AuditPage({ user, onLogout }: Props) {
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
   const auditId = parseInt(id ?? '', 10)
@@ -127,7 +128,14 @@ export function AuditPage({ user }: Props) {
       return <ProgressTracker auditId={auditId} onComplete={handleComplete} onError={handleError} />
 
     case 'report':
-      return <AuditReport report={view.report} inputLabel={view.inputLabel} user={user} />
+      return (
+        <AuditReport
+          report={view.report}
+          inputLabel={view.inputLabel}
+          user={user}
+          onLogout={onLogout}
+        />
+      )
 
     case 'error':
       return <ErrorView message={view.message} onRetry={() => navigate('/new')} />

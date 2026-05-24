@@ -81,6 +81,14 @@ export function AuditForm({ user, onLogout }: Props) {
 
   return (
     <div className="min-h-screen bg-gray-950 flex flex-col">
+      {/* Skip link — keyboard users can jump past the nav directly to the form */}
+      <a
+        href="#main-content"
+        className="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-50 focus:bg-blue-600 focus:text-white focus:px-4 focus:py-2 focus:rounded-lg focus:text-sm focus:font-medium focus:outline-none"
+      >
+        Skip to main content
+      </a>
+
       {/* Top nav */}
       <nav className="flex items-center justify-between px-6 py-4 border-b border-gray-800">
         <div className="flex items-center gap-6">
@@ -106,7 +114,7 @@ export function AuditForm({ user, onLogout }: Props) {
               <span className="text-gray-400 text-sm">{user.username}</span>
               <button
                 onClick={onLogout}
-                className="text-gray-500 hover:text-gray-300 text-sm transition-colors"
+                className="text-gray-500 hover:text-gray-300 text-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 focus-visible:ring-offset-gray-950 rounded"
               >
                 Sign out
               </button>
@@ -123,7 +131,7 @@ export function AuditForm({ user, onLogout }: Props) {
       </nav>
 
       {/* Main content */}
-      <div className="flex-1 flex items-center justify-center px-4">
+      <div id="main-content" className="flex-1 flex items-center justify-center px-4">
         <div className="w-full max-w-lg">
           <h2 className="text-white text-2xl font-bold mb-2 text-center">
             Run an Accessibility Audit
@@ -144,7 +152,7 @@ export function AuditForm({ user, onLogout }: Props) {
                   setMode('url')
                   setError(null)
                 }}
-                className={`flex-1 py-2 rounded-md text-sm font-medium transition-all ${
+                className={`flex-1 py-2 rounded-md text-sm font-medium transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-1 focus-visible:ring-offset-gray-800 ${
                   mode === 'url'
                     ? 'bg-gray-950 text-white shadow-sm'
                     : 'text-gray-400 hover:text-gray-200'
@@ -158,7 +166,7 @@ export function AuditForm({ user, onLogout }: Props) {
                   setMode('file')
                   setError(null)
                 }}
-                className={`flex-1 py-2 rounded-md text-sm font-medium transition-all ${
+                className={`flex-1 py-2 rounded-md text-sm font-medium transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-1 focus-visible:ring-offset-gray-800 ${
                   mode === 'file'
                     ? 'bg-gray-950 text-white shadow-sm'
                     : 'text-gray-400 hover:text-gray-200'
@@ -180,6 +188,7 @@ export function AuditForm({ user, onLogout }: Props) {
                   value={url}
                   onChange={(e) => setUrl(e.target.value)}
                   placeholder="https://example.com"
+                  aria-describedby={error ? 'form-error' : undefined}
                   className="w-full bg-gray-800 text-white rounded-lg px-4 py-3 text-sm placeholder-gray-600 border border-gray-700 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 focus:outline-none transition-colors"
                 />
               </div>
@@ -197,6 +206,7 @@ export function AuditForm({ user, onLogout }: Props) {
                   type="file"
                   accept=".html,text/html"
                   onChange={(e) => setFile(e.target.files?.[0] ?? null)}
+                  aria-describedby={error ? 'form-error' : undefined}
                   className="w-full bg-gray-800 text-white rounded-lg px-4 py-3 text-sm border border-gray-700 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 focus:outline-none transition-colors file:mr-3 file:py-1 file:px-3 file:rounded file:border-0 file:bg-gray-700 file:text-gray-300 file:text-xs hover:file:bg-gray-600"
                 />
               </div>
@@ -205,6 +215,7 @@ export function AuditForm({ user, onLogout }: Props) {
             {/* Error message */}
             {error && (
               <div
+                id="form-error"
                 role="alert"
                 className="mb-4 flex items-start gap-2.5 text-red-300 text-sm bg-red-950 border border-red-800 rounded-lg px-4 py-3"
               >
@@ -230,7 +241,7 @@ export function AuditForm({ user, onLogout }: Props) {
             <button
               type="submit"
               disabled={loading}
-              className="w-full bg-blue-600 hover:bg-blue-500 disabled:bg-gray-800 disabled:text-gray-500 disabled:cursor-not-allowed text-white font-semibold py-3 rounded-lg transition-colors flex items-center justify-center gap-2"
+              className="w-full bg-blue-600 hover:bg-blue-500 disabled:bg-gray-800 disabled:text-gray-500 disabled:cursor-not-allowed text-white font-semibold py-3 rounded-lg transition-colors flex items-center justify-center gap-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400 focus-visible:ring-offset-2 focus-visible:ring-offset-gray-900"
             >
               {loading && (
                 <svg

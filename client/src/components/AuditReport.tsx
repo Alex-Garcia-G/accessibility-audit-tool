@@ -13,6 +13,7 @@ interface Props {
   report: AuditReportType
   inputLabel: string // the URL or filename that was audited
   user?: CurrentUser | null
+  onLogout?: () => void
 }
 
 // Score badge color: green above SCORE_GREEN, yellow above SCORE_YELLOW, red below
@@ -119,7 +120,7 @@ function ViolationCard({ violation }: { violation: Violation }) {
   )
 }
 
-export function AuditReport({ report, inputLabel, user }: Props) {
+export function AuditReport({ report, inputLabel, user, onLogout }: Props) {
   // useMemo caches the sorted array — the sort only re-runs if report.violations
   // changes, not on every render. The result is always the same while viewing a
   // report, so recomputing it on each render would be pure wasted work.
@@ -133,6 +134,14 @@ export function AuditReport({ report, inputLabel, user }: Props) {
 
   return (
     <div className="min-h-screen bg-gray-950">
+      {/* Skip link */}
+      <a
+        href="#main-content"
+        className="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-50 focus:bg-blue-600 focus:text-white focus:px-4 focus:py-2 focus:rounded-lg focus:text-sm focus:font-medium focus:outline-none"
+      >
+        Skip to main content
+      </a>
+
       {/* Top nav */}
       <nav className="flex items-center justify-between px-6 py-4 border-b border-gray-800">
         <div className="flex items-center gap-6">
@@ -144,9 +153,39 @@ export function AuditReport({ report, inputLabel, user }: Props) {
             History
           </Link>
         </div>
+        <div className="flex items-center gap-3">
+          {user ? (
+            <>
+              {user.avatarUrl ? (
+                <img src={user.avatarUrl} alt={user.username} className="w-8 h-8 rounded-full" />
+              ) : (
+                <div
+                  className="w-8 h-8 rounded-full bg-blue-600 flex items-center justify-center text-sm text-white font-bold"
+                  aria-label={user.username}
+                >
+                  {user.username[0].toUpperCase()}
+                </div>
+              )}
+              <span className="text-gray-400 text-sm">{user.username}</span>
+              <button
+                onClick={onLogout}
+                className="text-gray-500 hover:text-gray-300 text-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 focus-visible:ring-offset-gray-950 rounded"
+              >
+                Sign out
+              </button>
+            </>
+          ) : (
+            <a
+              href="/auth/github"
+              className="text-sm text-blue-400 hover:text-blue-300 font-medium transition-colors"
+            >
+              Sign in with GitHub
+            </a>
+          )}
+        </div>
       </nav>
 
-      <div className="max-w-3xl mx-auto px-4 py-10">
+      <div id="main-content" className="max-w-3xl mx-auto px-4 py-10">
         {/* Sign-in CTA for guests */}
         {!user && (
           <div className="flex items-center justify-between bg-gray-900 border border-blue-800 rounded-xl px-5 py-4 mb-6">
