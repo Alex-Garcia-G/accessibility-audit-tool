@@ -79,6 +79,14 @@ export function HistoryPage({ user, onLogout }: Props) {
 
   return (
     <div className="min-h-screen bg-gray-950 flex flex-col">
+      {/* Skip link */}
+      <a
+        href="#main-content"
+        className="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-50 focus:bg-blue-600 focus:text-white focus:px-4 focus:py-2 focus:rounded-lg focus:text-sm focus:font-medium focus:outline-none"
+      >
+        Skip to main content
+      </a>
+
       {/* Top nav — matches AuditForm nav */}
       <nav className="flex items-center justify-between px-6 py-4 border-b border-gray-800">
         <div className="flex items-center gap-6">
@@ -102,14 +110,14 @@ export function HistoryPage({ user, onLogout }: Props) {
           <span className="text-gray-400 text-sm">{user.username}</span>
           <button
             onClick={onLogout}
-            className="text-gray-500 hover:text-gray-300 text-sm transition-colors"
+            className="text-gray-500 hover:text-gray-300 text-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 focus-visible:ring-offset-gray-950 rounded"
           >
             Sign out
           </button>
         </div>
       </nav>
 
-      <div className="max-w-3xl mx-auto w-full px-4 py-10">
+      <div id="main-content" className="max-w-3xl mx-auto w-full px-4 py-10">
         <h2 className="text-white text-2xl font-bold mb-6">Audit History</h2>
 
         {/* Skeleton loading state — placeholder rows that match the real row layout */}
@@ -205,7 +213,7 @@ export function HistoryPage({ user, onLogout }: Props) {
                   onClick={() => handleDelete(audit.id)}
                   disabled={deletingId === audit.id}
                   aria-label={`Delete audit for ${audit.inputLabel}`}
-                  className="px-4 py-4 text-gray-600 hover:text-red-400 hover:bg-red-950/30 rounded-r-xl disabled:opacity-40 transition-all flex-shrink-0"
+                  className="px-4 py-4 text-gray-600 hover:text-red-400 hover:bg-red-950/30 rounded-r-xl disabled:opacity-40 transition-all flex-shrink-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500 focus-visible:ring-inset"
                 >
                   <svg
                     className="w-4 h-4"
