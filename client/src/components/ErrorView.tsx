@@ -37,7 +37,7 @@ export function ErrorView({ message, onRetry }: Props) {
 
           <button
             onClick={onRetry}
-            className="w-full bg-blue-600 hover:bg-blue-500 text-white font-semibold py-3 rounded-lg transition-colors"
+            className="w-full bg-blue-600 hover:bg-blue-500 text-white font-semibold py-3 rounded-lg transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400 focus-visible:ring-offset-2 focus-visible:ring-offset-gray-900"
           >
             Try again
           </button>

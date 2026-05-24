@@ -34,7 +34,8 @@ describe('AuditReport', () => {
   it('shows the sign-in CTA when the user is not logged in', () => {
     renderReport(null)
     expect(screen.getByText(/Sign in to save your audit history/)).toBeInTheDocument()
-    expect(screen.getByRole('link', { name: 'Sign in with GitHub' })).toBeInTheDocument()
+    // nav + banner CTA both render a "Sign in with GitHub" link when logged out
+    expect(screen.getAllByRole('link', { name: 'Sign in with GitHub' })).toHaveLength(2)
   })
 
   it('hides the sign-in CTA when the user is logged in', () => {
